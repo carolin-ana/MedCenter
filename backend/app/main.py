@@ -6,7 +6,7 @@ procura (app/main.py -> variável "app").
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.modules.auth.models import Usuario
 from app.core.database import Base, engine
 
 # ---------------------------------------------------------------
@@ -47,10 +47,5 @@ def raiz():
     return {"status": "MedCenter API no ar"}
 
 
-# ---------------------------------------------------------------
-# À medida que cada módulo criar suas rotas (routes.py), registre
-# aqui. Exemplo, quando o módulo de pacientes estiver pronto:
-#
-# from app.modules.pacientes.routes import router as pacientes_router
-# app.include_router(pacientes_router, prefix="/pacientes", tags=["Pacientes"])
-# ---------------------------------------------------------------
+from app.modules.auth.routes import router as auth_router
+app.include_router(auth_router, prefix="/auth", tags=["Autenticação"])
