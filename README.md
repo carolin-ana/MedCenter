@@ -1,6 +1,6 @@
 # MedCenter
 
-Sistema de gestão hospitalar/clínica desenvolvido como trabalho da disciplina [nome da disciplina] — [nome da faculdade], 4º semestre de ADS.
+Sistema de gestão hospitalar/clínica desenvolvido como trabalho da disciplina Programação Orientada a Objetos e Gerenciamento de Banco de dados — UNASP - SP, 4º semestre de ADS.
 
 Cobre cadastro de pacientes (com convênio), corpo clínico, agenda de consultas, prescrições, exames, internação/enfermagem e faturamento.
 
@@ -12,11 +12,11 @@ Cobre cadastro de pacientes (com convênio), corpo clínico, agenda de consultas
 
 | Integrante | Módulo |
 |---|---|
-| [nome] | Pacientes & Prontuário |
-| [nome] | Corpo Clínico & Agenda |
-| [nome] | Farmácia & Exames |
-| [nome] | Internação & Enfermagem |
-| [nome] | Financeiro, Auth & Infraestrutura |
+| Larissa Pimenta | Pacientes & Prontuário |
+| Dennys de Oliveira | Corpo Clínico & Agenda |
+| Matheus Cardoso | Farmácia & Exames |
+| Matheus Silva | Internação & Enfermagem |
+| Ana Carolina | Financeiro, Auth & Infraestrutura |
 
 ---
 
