@@ -1,0 +1,15 @@
+# --- Backend (Python) ---
+backend/venv/
+backend/.env
+backend/__pycache__/
+backend/**/__pycache__/
+*.pyc
+
+# --- Frontend ---
+frontend/node_modules/
+
+# --- Editor / SO ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

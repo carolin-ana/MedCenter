@@ -1,0 +1,56 @@
+"""
+Ponto de entrada do backend. É esse arquivo que o comando
+    uvicorn app.main:app --reload
+procura (app/main.py -> variável "app").
+"""
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.core.database import Base, engine
+
+# ---------------------------------------------------------------
+# À medida que cada módulo (pacientes, agenda, farmacia_exames,
+# internacao, financeiro) for criando seus models, importe-os
+# aqui. É esse import que faz o SQLAlchemy "conhecer" a tabela
+# na hora de criar tudo no banco (Base.metadata.create_all).
+#
+# Exemplo (descomente conforme os módulos forem ficando prontos):
+# from app.modules.pacientes.models import Paciente, ContatoPaciente, Prontuario, Convenio
+# from app.modules.agenda.models import Medico, Especialidade, Consulta, Atendimento
+# from app.modules.farmacia_exames.models import Prescricao, Medicamento, PrescricaoMedicamento, Exame, PedidoExame, PedidoExameItem
+# from app.modules.internacao.models import Internacao, Quarto, InternacaoQuarto, Enfermeira, AtendimentoEnfermeira
+# from app.modules.financeiro.models import Faturamento
+# from app.modules.auth.models import Usuario
+# ---------------------------------------------------------------
+
+app = FastAPI(title="MedCenter API")
+
+# Libera o frontend (que roda como arquivo HTML separado, em outra
+# "origem") a chamar essa API sem ser bloqueado pelo navegador.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # em produção, troque "*" pelo endereço real do frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Cria automaticamente, no MySQL, todas as tabelas dos models importados
+# acima — só cria as que ainda não existem, não apaga dados existentes.
+Base.metadata.create_all(bind=engine)
+
+
+@app.get("/")
+def raiz():
+    """Rota simples só para confirmar que a API está no ar."""
+    return {"status": "MedCenter API no ar"}
+
+
+# ---------------------------------------------------------------
+# À medida que cada módulo criar suas rotas (routes.py), registre
+# aqui. Exemplo, quando o módulo de pacientes estiver pronto:
+#
+# from app.modules.pacientes.routes import router as pacientes_router
+# app.include_router(pacientes_router, prefix="/pacientes", tags=["Pacientes"])
+# ---------------------------------------------------------------
