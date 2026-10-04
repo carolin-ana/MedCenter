@@ -8,7 +8,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.modules.auth.models import Usuario
 from app.core.database import Base, engine
+from app.modules.auth.models import Usuario
 
+from app.modules.pacientes.models import Convenio, Paciente, ContatoPaciente, Prontuario
+from app.modules.agenda.models import Especialidade, Medico, MedicoEspecialidade, Consulta, Atendimento
+from app.modules.internacao.models import Internacao, Enfermeiro, AtendimentoEnfermeiro, Quarto, InternacaoQuarto
+from app.modules.financeiro.models import Faturamento
 # ---------------------------------------------------------------
 # À medida que cada módulo (pacientes, agenda, farmacia_exames,
 # internacao, financeiro) for criando seus models, importe-os
