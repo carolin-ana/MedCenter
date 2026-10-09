@@ -57,3 +57,6 @@ app.include_router(auth_router, prefix="/auth", tags=["Autenticação"])
 
 from app.modules.financeiro.routes import router as financeiro_router
 app.include_router(financeiro_router, prefix="/faturamento", tags=["Faturamento"])
+
+from app.modules.pacientes.routes import router as pacientes_router
+app.include_router(pacientes_router, tags=["Pacientes"])
