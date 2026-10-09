@@ -54,3 +54,6 @@ def raiz():
 
 from app.modules.auth.routes import router as auth_router
 app.include_router(auth_router, prefix="/auth", tags=["Autenticação"])
+
+from app.modules.financeiro.routes import router as financeiro_router
+app.include_router(financeiro_router, prefix="/faturamento", tags=["Faturamento"])
