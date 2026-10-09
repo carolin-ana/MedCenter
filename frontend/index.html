@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedCenter — Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Tela de login -->
+  <div id="tela-login" class="tela-login">
+    <div class="card-login">
+      <h5 class="mb-3">Entrar no MedCenter</h5>
+      <div id="erro-login" class="erro-login" style="display:none;"></div>
+      <input type="email" id="campo-email" placeholder="seu@email.com" />
+      <input type="password" id="campo-senha" placeholder="Senha" />
+      <button onclick="fazerLogin()">Entrar</button>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div id="app" class="layout" style="display:none;">
+
+    <aside class="sidebar">
+      <div class="marca">
+        <div class="icone"><i class="bi bi-hospital"></i></div>
+        <div>
+          <div class="nome">MedCenter</div>
+          <div class="subtitulo">Hospital Geral</div>
+        </div>
+      </div>
+
+      <nav>
+        <a href="index.html" class="ativo"><i class="bi bi-grid"></i> Dashboard</a>
+        <a href="pacientes/index.html"><i class="bi bi-people"></i> Pacientes</a>
+        <a href="agenda/index.html"><i class="bi bi-person-badge"></i> Médicos</a>
+        <a href="agenda/index.html"><i class="bi bi-calendar3"></i> Agendamentos</a>
+        <a href="farmacia-exames/index.html"><i class="bi bi-file-earmark-text"></i> Resultados</a>
+        <a href="financeiro/index.html"><i class="bi bi-bar-chart"></i> Financeiro</a>
+        <a href="pacientes/index.html"><i class="bi bi-credit-card-2-front"></i> Convênios</a>
+      </nav>
+
+      <div class="rodape-usuario">
+        <div class="avatar-circulo" id="iniciais-usuario">—</div>
+        <div>
+          <div class="nome" id="nome-usuario">—</div>
+          <div class="email" id="email-usuario"></div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="conteudo">
+      <header class="topo">
+        <div>
+          <h1>Dashboard</h1>
+          <p class="data-hoje" id="data-hoje"></p>
+        </div>
+        <div class="busca">
+          <i class="bi bi-search"></i>
+          <input type="text" placeholder="Busca rápida..." disabled />
+        </div>
+        <div class="topo-acoes">
+          <div class="sino"><i class="bi bi-bell"></i><span class="ponto"></span></div>
+          <button class="btn btn-sm btn-outline-secondary" onclick="fazerLogout()">Sair</button>
+        </div>
+      </header>
+
+      <div class="pagina">
+
+        <div class="grid-stats">
+          <div class="card card-stat">
+            <div class="rotulo">Pacientes cadastrados
+              <div class="icone-stat"><i class="bi bi-people"></i></div>
+            </div>
+            <div class="numero" id="stat-pacientes">—</div>
+            <div class="detalhe">total no sistema</div>
+          </div>
+
+          <div class="card card-stat">
+            <div class="rotulo">Faturamentos
+              <div class="icone-stat" style="background:#fff3e0;color:#b4660a;"><i class="bi bi-receipt"></i></div>
+            </div>
+            <div class="numero" id="stat-faturamentos">—</div>
+            <div class="detalhe">registros no sistema</div>
+          </div>
+
+          <div class="card card-stat">
+            <div class="rotulo">Consultas hoje
+              <div class="icone-stat" style="background:#e7f1ff;color:#1b5fc2;"><i class="bi bi-calendar3"></i></div>
+            </div>
+            <div class="numero">—</div>
+            <div class="detalhe placeholder-aviso">módulo de agenda em construção</div>
+          </div>
+
+          <div class="card card-stat">
+            <div class="rotulo">Receita total
+              <div class="icone-stat" style="background:#e6f7ef;color:#0f7a4d;"><i class="bi bi-cash-stack"></i></div>
+            </div>
+            <div class="numero" id="stat-receita">—</div>
+            <div class="detalhe">soma de todos os faturamentos</div>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-lg-8">
+            <div class="card">
+              <div class="secao-titulo">Pacientes cadastrados recentemente</div>
+              <div id="lista-pacientes-recentes">
+                <p class="placeholder-aviso">Carregando...</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="card card-destaque mb-3">
+              <div class="rotulo">RECEITA TOTAL</div>
+              <div class="numero" id="destaque-receita">—</div>
+              <div class="linha"><span>Faturamentos</span><span id="destaque-qtd">—</span></div>
+              <div class="linha"><span>Pendentes</span><span id="destaque-pendentes">—</span></div>
+            </div>
+
+            <div class="card">
+              <div class="secao-titulo">Agenda de hoje</div>
+              <p class="placeholder-aviso">O módulo de agenda ainda não tem rotas prontas — assim que o P2 terminar, essa lista passa a mostrar as consultas do dia.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="services/api.js"></script>
+  <script>
+    document.getElementById("data-hoje").textContent = new Date().toLocaleDateString("pt-BR", {
+      weekday: "long", day: "2-digit", month: "long", year: "numeric",
+    });
+
+    async function fazerLogin() {
+      const email = document.getElementById("campo-email").value;
+      const senha = document.getElementById("campo-senha").value;
+      const erro = document.getElementById("erro-login");
+      erro.style.display = "none";
+      try {
+        await login(email, senha);
+        mostrarApp();
+      } catch (e) {
+        erro.textContent = e.message;
+        erro.style.display = "block";
+      }
+    }
+
+    function fazerLogout() {
+      logout();
+      location.reload();
+    }
+
+    function mostrarApp() {
+      document.getElementById("tela-login").style.display = "none";
+      document.getElementById("app").style.display = "flex";
+
+      const email = obterToken() ? JSON.parse(atob(obterToken().split(".")[1])).perfil : "";
+      document.getElementById("nome-usuario").textContent = "Administrador";
+      document.getElementById("email-usuario").textContent = email;
+      document.getElementById("iniciais-usuario").textContent = "AD";
+
+      carregarDashboard();
+    }
+
+    async function carregarDashboard() {
+      try {
+        const pacientes = await apiFetch("/pacientes");
+        document.getElementById("stat-pacientes").textContent = pacientes.length;
+
+        const listaEl = document.getElementById("lista-pacientes-recentes");
+        listaEl.innerHTML = "";
+        pacientes.slice(-5).reverse().forEach((p) => {
+          const linha = document.createElement("div");
+          linha.className = "lista-item";
+          linha.innerHTML = `<span>${p.nome}</span><span class="pill pill-info">${p.id_convenio ? "Convênio" : "Particular"}</span>`;
+          listaEl.appendChild(linha);
+        });
+        if (pacientes.length === 0) {
+          listaEl.innerHTML = '<p class="placeholder-aviso">Nenhum paciente cadastrado ainda.</p>';
+        }
+      } catch (e) {
+        document.getElementById("stat-pacientes").textContent = "erro";
+      }
+
+      try {
+        const faturamentos = await apiFetch("/faturamento/");
+        document.getElementById("stat-faturamentos").textContent = faturamentos.length;
+        const total = faturamentos.reduce((s, f) => s + Number(f.valor_total), 0);
+        const pendentes = faturamentos.filter((f) => f.status === "pendente").length;
+        const totalFormatado = total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+        document.getElementById("stat-receita").textContent = totalFormatado;
+        document.getElementById("destaque-receita").textContent = totalFormatado;
+        document.getElementById("destaque-qtd").textContent = faturamentos.length;
+        document.getElementById("destaque-pendentes").textContent = pendentes;
+      } catch (e) {
+        document.getElementById("stat-faturamentos").textContent = "—";
+      }
+    }
+
+    if (estaLogado()) mostrarApp();
+  </script>
+</body>
+</html>
