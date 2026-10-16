@@ -14,6 +14,7 @@ from app.modules.pacientes.models import Convenio, Paciente, ContatoPaciente, Pr
 from app.modules.agenda.models import Especialidade, Medico, MedicoEspecialidade, Consulta, Atendimento
 from app.modules.internacao.models import Internacao, Enfermeiro, AtendimentoEnfermeiro, Quarto, InternacaoQuarto
 from app.modules.financeiro.models import Faturamento
+from app.modules.farmacia_exames.models import Medicamento, Exame
 # ---------------------------------------------------------------
 # À medida que cada módulo (pacientes, agenda, farmacia_exames,
 # internacao, financeiro) for criando seus models, importe-os
@@ -60,3 +61,6 @@ app.include_router(financeiro_router, prefix="/faturamento", tags=["Faturamento"
 
 from app.modules.pacientes.routes import router as pacientes_router
 app.include_router(pacientes_router, tags=["Pacientes"])
+
+from app.modules.farmacia_exames.routes import router as farmacia_exames_router
+app.include_router(farmacia_exames_router)
