@@ -64,3 +64,6 @@ app.include_router(pacientes_router, tags=["Pacientes"])
 
 from app.modules.farmacia_exames.routes import router as farmacia_exames_router
 app.include_router(farmacia_exames_router)
+
+from app.modules.agenda.routes import router as agenda_router
+app.include_router(agenda_router)
