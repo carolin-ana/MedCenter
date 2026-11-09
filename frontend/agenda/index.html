@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedCenter — Agenda</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+
+  <div id="conteudo-pagina">
+
+    <div class="abas">
+      <button class="aba ativa" data-aba="agenda">Consultas</button>
+      <button class="aba" data-aba="medicos">Médicos</button>
+      <button class="aba" data-aba="especialidades">Especialidades</button>
+    </div>
+
+    <!-- ===== Aba Consultas ===== -->
+    <section id="aba-agenda">
+      <div class="barra-acoes">
+        <select id="filtro-medico"></select>
+        <input type="date" id="filtro-data" />
+        <select id="filtro-status">
+          <option value="">Todos os status</option>
+          <option value="agendada">Agendada</option>
+          <option value="realizada">Realizada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+        <button class="botao botao-secundario" id="btn-filtrar">Filtrar</button>
+        <button class="botao botao-secundario" id="btn-limpar-filtros">Ver todas</button>
+        <span class="espaco"></span>
+        <button class="botao botao-primario" id="btn-nova-consulta"><i class="bi bi-plus-lg"></i> Nova consulta</button>
+      </div>
+
+      <div class="card tabela-wrap">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Data e hora</th>
+              <th>Paciente</th>
+              <th>Médico</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tabela-consultas"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== Aba Médicos ===== -->
+    <section id="aba-medicos" style="display:none;">
+      <div class="barra-acoes">
+        <span class="espaco"></span>
+        <button class="botao botao-primario" id="btn-novo-medico"><i class="bi bi-plus-lg"></i> Novo médico</button>
+      </div>
+
+      <div class="card tabela-wrap">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>CRM</th>
+              <th>Telefone</th>
+              <th>Especialidades</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tabela-medicos"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== Aba Especialidades ===== -->
+    <section id="aba-especialidades" style="display:none;">
+      <div class="barra-acoes">
+        <span class="espaco"></span>
+        <button class="botao botao-primario" id="btn-nova-especialidade"><i class="bi bi-plus-lg"></i> Nova especialidade</button>
+      </div>
+
+      <div class="card tabela-wrap">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Área</th>
+              <th>Descrição</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tabela-especialidades"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="../services/api.js"></script>
+  <script src="../services/layout.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedCenter — Pacientes</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+
+  <div id="conteudo-pagina">
+
+    <div class="abas">
+      <button class="aba ativa" data-aba="pacientes">Pacientes</button>
+      <button class="aba" data-aba="convenios">Convênios</button>
+    </div>
+
+    <!-- ===== Aba Pacientes ===== -->
+    <section id="aba-pacientes">
+      <div class="barra-acoes">
+        <div class="busca-inline">
+          <i class="bi bi-search"></i>
+          <input type="text" id="busca" placeholder="Buscar por nome ou CPF" />
+        </div>
+        <button class="botao botao-secundario" id="btn-buscar">Buscar</button>
+        <button class="botao botao-secundario" id="btn-limpar">Limpar</button>
+        <span class="espaco"></span>
+        <button class="botao botao-primario" id="btn-novo-paciente"><i class="bi bi-plus-lg"></i> Novo paciente</button>
+      </div>
+
+      <div class="card tabela-wrap">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>CPF</th>
+              <th>Nascimento</th>
+              <th>Sexo</th>
+              <th>Convênio</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tabela-pacientes"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== Aba Convênios ===== -->
+    <section id="aba-convenios" style="display:none;">
+      <div class="barra-acoes">
+        <span class="espaco"></span>
+        <button class="botao botao-primario" id="btn-novo-convenio"><i class="bi bi-plus-lg"></i> Novo convênio</button>
+      </div>
+
+      <div class="card tabela-wrap">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Registro ANS</th>
+              <th>Telefone</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-convenios"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="../services/api.js"></script>
+  <script src="../services/layout.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -276,3 +276,160 @@ body {
 
 .secao-titulo { font-size: 1.05rem; font-weight: 700; margin: 0 0 0.9rem; }
 .placeholder-aviso { font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
+
+/* =====================================================
+   Componentes das telas dos módulos (tabelas, formulários,
+   modal, abas, avisos). Usados por pacientes/, agenda/ etc.
+   ===================================================== */
+
+.card { border: none; }
+
+/* ---------- Botões ---------- */
+.botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.botao:disabled { opacity: 0.6; cursor: not-allowed; }
+.botao-primario { background: var(--teal); color: #fff; }
+.botao-primario:hover:not(:disabled) { background: var(--teal-light); }
+.botao-secundario { background: #fff; color: #374151; border-color: #d9dde2; }
+.botao-secundario:hover:not(:disabled) { background: #f3f4f6; }
+.botao-perigo { background: #fff; color: #c22; border-color: #f1c4c4; }
+.botao-perigo:hover:not(:disabled) { background: #fdeaea; }
+.botao-sm { padding: 0.25rem 0.6rem; font-size: 0.78rem; }
+
+/* ---------- Abas ---------- */
+.abas { display: flex; gap: 4px; border-bottom: 1px solid #e3e6ea; margin-bottom: 1.1rem; }
+.aba {
+  background: none;
+  border: none;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  font-family: inherit;
+}
+.aba.ativa { color: var(--teal); border-bottom-color: var(--teal); }
+
+/* ---------- Barra de filtros / ações ---------- */
+.barra-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-bottom: 1rem; }
+.barra-acoes .espaco { flex: 1; }
+.barra-acoes select,
+.barra-acoes input[type="date"],
+.busca-inline input {
+  border: 1px solid #d9dde2;
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.85rem;
+  background: #fff;
+  font-family: inherit;
+}
+.busca-inline { position: relative; }
+.busca-inline i { position: absolute; left: 0.65rem; top: 50%; transform: translateY(-50%); color: #adb5bd; }
+.busca-inline input { padding-left: 2rem; min-width: 260px; }
+
+/* ---------- Tabela ---------- */
+.tabela-wrap { padding: 0; overflow-x: auto; }
+.tabela { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.tabela th {
+  text-align: left;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eef0f2;
+  background: #fafbfc;
+  white-space: nowrap;
+}
+.tabela td { padding: 0.7rem 1rem; border-bottom: 1px solid #f1f3f5; vertical-align: middle; }
+.tabela tr:last-child td { border-bottom: none; }
+.tabela .acoes { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+.vazio { padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.88rem; }
+
+.chip {
+  display: inline-block;
+  background: #e7f4f0;
+  color: #0f6e56;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  margin: 0 4px 2px 0;
+}
+
+/* ---------- Formulários ---------- */
+.form-grupo { margin-bottom: 0.85rem; flex: 1; }
+.form-grupo label { display: block; font-size: 0.8rem; font-weight: 600; color: #374151; margin-bottom: 4px; }
+.form-grupo input[type="text"],
+.form-grupo input[type="date"],
+.form-grupo input[type="datetime-local"],
+.form-grupo select,
+.form-grupo textarea,
+.form-inline input[type="text"],
+.form-inline select,
+.form-inline textarea {
+  width: 100%;
+  border: 1px solid #d9dde2;
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.88rem;
+  font-family: inherit;
+  background: #fff;
+}
+.form-grupo textarea,
+.form-inline textarea { min-height: 70px; resize: vertical; }
+.form-grupo input:focus,
+.form-grupo select:focus,
+.form-grupo textarea:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(15, 110, 86, 0.12);
+}
+.form-linha { display: flex; gap: 0.75rem; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; margin-bottom: 6px; }
+.form-inline { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.6rem; }
+.form-inline input[type="text"], .form-inline select { width: auto; flex: 1; min-width: 140px; }
+
+/* ---------- Modal ---------- */
+.modal-fundo {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 4vh 1rem;
+  overflow-y: auto;
+  z-index: 1000;
+}
+.modal-caixa { background: #fff; border-radius: 14px; width: 100%; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25); }
+.modal-topo { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-bottom: 1px solid #eef0f2; }
+.modal-topo h2 { font-size: 1.05rem; margin: 0; font-weight: 700; }
+.modal-x { background: none; border: none; font-size: 1.5rem; line-height: 1; cursor: pointer; color: #6b7280; }
+.modal-corpo { padding: 1.1rem 1.25rem; }
+.modal-erro { margin: 0 1.25rem; padding: 0.6rem 0.8rem; background: #fdeaea; color: #a11; border-radius: 8px; font-size: 0.84rem; }
+.modal-rodape { display: flex; justify-content: flex-end; gap: 0.5rem; padding: 1rem 1.25rem; border-top: 1px solid #eef0f2; margin-top: 0.75rem; }
+
+/* ---------- Avisos (toast) ---------- */
+#toasts { position: fixed; top: 1rem; right: 1rem; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+.toast { padding: 0.7rem 1rem; border-radius: 10px; font-size: 0.86rem; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); color: #fff; max-width: 360px; }
+.toast-sucesso { background: #0f6e56; }
+.toast-erro { background: #c0392b; }
+
+/* ---------- Blocos do modal de detalhes ---------- */
+.bloco-detalhe { margin-bottom: 1.2rem; }
+.bloco-detalhe h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 0 0 0.5rem; font-weight: 700; }
+.dados-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.5rem 1rem; font-size: 0.88rem; }
+.dados-grid .rot { display: block; font-size: 0.72rem; color: var(--text-muted); }

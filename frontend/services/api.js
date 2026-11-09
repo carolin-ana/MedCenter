@@ -6,6 +6,9 @@
 
 const API_BASE_URL = "http://127.0.0.1:8000";
 
+// Evita mostrar o aviso de sessão expirada várias vezes quando várias chamadas falham juntas
+let sessaoExpiradaTratada = false;
+
 function salvarToken(token) {
   localStorage.setItem("medcenter_token", token);
 }
@@ -69,6 +72,18 @@ async function apiFetch(caminho, opcoes = {}) {
     ...opcoes,
     headers: cabecalhos,
   });
+
+  // Token vencido ou inválido (ex: a SECRET_KEY do servidor mudou): limpa o login
+  // e recarrega a página, que volta para a tela de entrada.
+  if (resposta.status === 401 && token) {
+    if (!sessaoExpiradaTratada) {
+      sessaoExpiradaTratada = true;
+      removerToken();
+      alert("Sua sessão expirou. Entre novamente.");
+      location.reload();
+    }
+    throw new Error("Sessão expirada. Entre novamente.");
+  }
 
   if (!resposta.ok) {
     const corpoErro = await resposta.json().catch(() => ({}));
