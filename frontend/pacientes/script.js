@@ -4,6 +4,7 @@
  */
 
 let convenios = [];
+const TIPOS_SANGUE = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 let mapaConvenios = {};
 
 const el = (id) => document.getElementById(id);
@@ -25,7 +26,7 @@ async function iniciar() {
   el("btn-limpar").addEventListener("click", () => { el("busca").value = ""; carregarPacientes(); });
   el("busca").addEventListener("keydown", (e) => { if (e.key === "Enter") buscarPacientes(); });
   el("btn-novo-paciente").addEventListener("click", () => abrirFormPaciente());
-  el("btn-novo-convenio").addEventListener("click", abrirFormConvenio);
+  el("btn-novo-convenio").addEventListener("click", () => abrirFormConvenio());
 
   await carregarConvenios();
   await carregarPacientes();
@@ -53,44 +54,72 @@ async function carregarConvenios() {
 
   const corpo = el("tabela-convenios");
   if (convenios.length === 0) {
-    corpo.innerHTML = `<tr><td colspan="3" class="vazio">Nenhum convênio cadastrado.</td></tr>`;
+    corpo.innerHTML = `<tr><td colspan="4" class="vazio">Nenhum convênio cadastrado.</td></tr>`;
     return;
   }
   corpo.innerHTML = convenios
     .map(
       (c) => `<tr>
-        <td>${escapeHtml(c.nome)}</td>
+        <td><strong>${escapeHtml(c.nome)}</strong></td>
         <td>${escapeHtml(c.registro_ans || "—")}</td>
         <td>${escapeHtml(c.telefone || "—")}</td>
+        <td><div class="acoes">
+          <button class="botao botao-secundario botao-sm" data-acao="editar" data-id="${c.id_convenio}">Editar</button>
+          <button class="botao botao-perigo botao-sm" data-acao="excluir" data-id="${c.id_convenio}">Excluir</button>
+        </div></td>
       </tr>`
     )
     .join("");
+
+  corpo.querySelectorAll("button[data-acao]").forEach((botao) => {
+    const convenio = convenios.find((c) => c.id_convenio === Number(botao.dataset.id));
+    botao.addEventListener("click", () => {
+      if (botao.dataset.acao === "editar") abrirFormConvenio(convenio);
+      if (botao.dataset.acao === "excluir") excluirConvenio(convenio);
+    });
+  });
 }
 
-function abrirFormConvenio() {
+function abrirFormConvenio(convenio = null) {
+  const editando = !!convenio;
   const html = `
-    <div class="form-grupo"><label>Nome *</label><input type="text" id="c-nome" /></div>
+    <div class="form-grupo"><label>Nome *</label><input type="text" id="c-nome" value="${escapeHtml(convenio?.nome)}" /></div>
     <div class="form-linha">
-      <div class="form-grupo"><label>Registro ANS</label><input type="text" id="c-ans" /></div>
-      <div class="form-grupo"><label>Telefone</label><input type="text" id="c-tel" /></div>
+      <div class="form-grupo"><label>Registro ANS</label><input type="text" id="c-ans" value="${escapeHtml(convenio?.registro_ans)}" /></div>
+      <div class="form-grupo"><label>Telefone</label><input type="text" id="c-tel" value="${escapeHtml(convenio?.telefone)}" /></div>
     </div>`;
 
-  abrirModal("Novo convênio", html, {
+  abrirModal(editando ? "Editar convênio" : "Novo convênio", html, {
     aoSalvar: async (corpo) => {
       const nome = corpo.querySelector("#c-nome").value.trim();
       if (!nome) throw new Error("Informe o nome do convênio.");
-      await apiFetch("/convenios", {
-        method: "POST",
-        body: JSON.stringify({
-          nome,
-          registro_ans: corpo.querySelector("#c-ans").value.trim() || null,
-          telefone: corpo.querySelector("#c-tel").value.trim() || null,
-        }),
-      });
+      const dados = {
+        nome,
+        registro_ans: corpo.querySelector("#c-ans").value.trim() || null,
+        telefone: corpo.querySelector("#c-tel").value.trim() || null,
+      };
+      if (editando) {
+        await apiFetch(`/convenios/${convenio.id_convenio}`, { method: "PUT", body: JSON.stringify(dados) });
+      } else {
+        await apiFetch("/convenios", { method: "POST", body: JSON.stringify(dados) });
+      }
       await carregarConvenios();
-      mostrarAviso("Convênio cadastrado.");
+      await carregarPacientes(); // a lista de pacientes mostra o nome do convênio
+      mostrarAviso(editando ? "Convênio atualizado." : "Convênio cadastrado.");
     },
   });
+}
+
+async function excluirConvenio(convenio) {
+  if (!confirm(`Excluir o convênio "${convenio.nome}"?`)) return;
+  try {
+    await apiFetch(`/convenios/${convenio.id_convenio}`, { method: "DELETE" });
+    await carregarConvenios();
+    await carregarPacientes();
+    mostrarAviso("Convênio excluído.");
+  } catch (e) {
+    mostrarAviso(e.message, "erro");
+  }
 }
 
 // ======================= Lista de pacientes =======================
@@ -219,7 +248,7 @@ async function excluirPaciente(paciente) {
     await carregarPacientes();
     mostrarAviso("Paciente excluído.");
   } catch (e) {
-    mostrarAviso("Não foi possível excluir. O paciente pode ter consultas, internações ou faturamentos vinculados.", "erro");
+    mostrarAviso(e.message, "erro");
   }
 }
 
@@ -258,21 +287,30 @@ async function renderDetalhes(corpo, paciente) {
 
   const listaContatos = contatos.length
     ? contatos
-        .map((c) => `<div class="lista-item"><span>${escapeHtml(c.tipo_contato)}: <strong>${escapeHtml(c.valor_contato)}</strong></span>${c.eh_preferencial ? '<span class="pill pill-sucesso">Preferencial</span>' : ""}</div>`)
+        .map((c) => `<div class="lista-item"><span>${escapeHtml(c.tipo_contato)}: <strong>${escapeHtml(c.valor_contato)}</strong></span>
+          <span style="display:flex;gap:6px;align-items:center;">
+            ${c.eh_preferencial ? '<span class="pill pill-sucesso">Preferencial</span>' : `<button type="button" class="botao botao-secundario botao-sm" data-preferir="${c.id_contato}">Tornar preferencial</button>`}
+            <button type="button" class="botao botao-perigo botao-sm" data-remover-contato="${c.id_contato}">Remover</button>
+          </span></div>`)
         .join("")
     : `<p class="placeholder-aviso">Nenhum contato cadastrado.</p>`;
 
   const blocoProntuario = prontuario
-    ? `<div class="dados-grid">
-         <div><span class="rot">Aberto em</span>${formatarData(prontuario.data_abertura)}</div>
-         <div><span class="rot">Tipo sanguíneo</span>${escapeHtml(prontuario.tipo_sangue || "—")}</div>
+    ? `<p style="margin:0 0 0.6rem;font-size:0.8rem;color:#6c757d;">Aberto em ${formatarData(prontuario.data_abertura)}</p>
+       <div class="form-grupo" style="max-width:220px;">
+         <label>Tipo sanguíneo</label>
+         <select id="pe-sangue">
+           <option value="">—</option>
+           ${TIPOS_SANGUE.map((tipo) => `<option value="${tipo}" ${prontuario.tipo_sangue === tipo ? "selected" : ""}>${tipo}</option>`).join("")}
+         </select>
        </div>
-       <p style="margin:0.6rem 0 0;font-size:0.88rem;"><span class="rot" style="display:block;font-size:0.72rem;color:#6c757d;">Observações</span>${escapeHtml(prontuario.observacoes || "—")}</p>`
+       <div class="form-grupo"><label>Observações</label><textarea id="pe-obs">${escapeHtml(prontuario.observacoes)}</textarea></div>
+       <button type="button" class="botao botao-secundario botao-sm" id="btn-salvar-prontuario">Salvar prontuário</button>`
     : `<p class="placeholder-aviso">Esse paciente ainda não tem prontuário.</p>
        <div class="form-inline">
          <select id="p-sangue">
            <option value="">Tipo sanguíneo</option>
-           ${["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((t) => `<option value="${t}">${t}</option>`).join("")}
+           ${TIPOS_SANGUE.map((t) => `<option value="${t}">${t}</option>`).join("")}
          </select>
          <input type="text" id="p-obs" placeholder="Observações" />
          <button type="button" class="botao botao-primario botao-sm" id="btn-abrir-prontuario">Abrir prontuário</button>
@@ -346,6 +384,47 @@ async function renderDetalhes(corpo, paciente) {
       mostrarAviso(e.message, "erro");
     }
   });
+
+  corpo.querySelectorAll("button[data-remover-contato]").forEach((botao) => {
+    botao.addEventListener("click", async () => {
+      try {
+        await apiFetch(`/contatos/${botao.dataset.removerContato}`, { method: "DELETE" });
+        await renderDetalhes(corpo, paciente);
+      } catch (e) {
+        mostrarAviso(e.message, "erro");
+      }
+    });
+  });
+
+  corpo.querySelectorAll("button[data-preferir]").forEach((botao) => {
+    botao.addEventListener("click", async () => {
+      try {
+        await apiFetch(`/contatos/${botao.dataset.preferir}`, { method: "PUT", body: JSON.stringify({ eh_preferencial: true }) });
+        await renderDetalhes(corpo, paciente);
+      } catch (e) {
+        mostrarAviso(e.message, "erro");
+      }
+    });
+  });
+
+  const botaoSalvarProntuario = corpo.querySelector("#btn-salvar-prontuario");
+  if (botaoSalvarProntuario) {
+    botaoSalvarProntuario.addEventListener("click", async () => {
+      try {
+        await apiFetch(`/prontuarios/${prontuario.id_prontuario}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            tipo_sangue: corpo.querySelector("#pe-sangue").value || null,
+            observacoes: corpo.querySelector("#pe-obs").value.trim() || null,
+          }),
+        });
+        mostrarAviso("Prontuário atualizado.");
+        await renderDetalhes(corpo, paciente);
+      } catch (e) {
+        mostrarAviso(e.message, "erro");
+      }
+    });
+  }
 
   const botaoProntuario = corpo.querySelector("#btn-abrir-prontuario");
   if (botaoProntuario) {

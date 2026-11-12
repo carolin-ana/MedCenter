@@ -15,6 +15,12 @@ class ConvenioCreate(BaseModel):
     telefone: Optional[str] = None
 
 
+class ConvenioUpdate(BaseModel):
+    nome: Optional[str] = None
+    registro_ans: Optional[str] = None
+    telefone: Optional[str] = None
+
+
 class ConvenioOut(BaseModel):
     id_convenio: int
     nome: str
@@ -65,6 +71,12 @@ class ContatoPacienteCreate(BaseModel):
     eh_preferencial: bool = False
 
 
+class ContatoPacienteUpdate(BaseModel):
+    tipo_contato: Optional[str] = None
+    valor_contato: Optional[str] = None
+    eh_preferencial: Optional[bool] = None
+
+
 class ContatoPacienteOut(BaseModel):
     id_contato: int
     id_paciente: int
@@ -80,6 +92,11 @@ class ContatoPacienteOut(BaseModel):
 class ProntuarioCreate(BaseModel):
     id_paciente: int
     data_abertura: Optional[date] = None
+    tipo_sangue: Optional[str] = None
+    observacoes: Optional[str] = None
+
+
+class ProntuarioUpdate(BaseModel):
     tipo_sangue: Optional[str] = None
     observacoes: Optional[str] = None
 
