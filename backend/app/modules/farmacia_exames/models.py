@@ -1,6 +1,6 @@
 
 from app.core.database import Base
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Text
 from sqlalchemy.sql import func
 
 
@@ -79,3 +79,7 @@ class PedidoExameItem(Base):
         )
 
     observacoes = Column(Text, nullable=True)
+
+    # Resultado do exame (previsto no diagrama ER do projeto)
+    resultado = Column(Text, nullable=True)
+    data_resultado = Column(Date, nullable=True)

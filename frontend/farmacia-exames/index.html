@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedCenter — Farmácia e exames</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+
+  <div id="conteudo-pagina">
+
+    <div class="abas">
+      <button class="aba ativa" data-aba="prescricoes">Prescrições</button>
+      <button class="aba" data-aba="pedidos">Pedidos de exame</button>
+      <button class="aba" data-aba="medicamentos">Medicamentos</button>
+      <button class="aba" data-aba="exames">Exames</button>
+    </div>
+
+    <!-- ===== Prescrições ===== -->
+    <section id="aba-prescricoes">
+      <div class="barra-acoes">
+        <span class="espaco"></span>
+        <button class="botao botao-primario" id="btn-nova-prescricao"><i class="bi bi-plus-lg"></i> Nova prescrição</button>
+      </div>
+      <div class="card tabela-wrap">
+        <table class="tabela">
+          <thead>
+            <tr><th>Data</th><th>Paciente / atendimento</th><th>Status</th><th>Medicamentos</th><th></th></tr>
+          </thead>
+          <tbody id="tabela-prescricoes"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== Pedidos de exame ===== -->
+    <section id="aba-pedidos" style="display:none;">
+      <div class="barra-acoes">
+        <span class="espaco"></span>
+        <button class="botao botao-primario" id="btn-novo-pedido"><i class="bi bi-plus-lg"></i> Novo pedido</button>
+      </div>
+      <div class="card tabela-wrap">
+        <table class="tabela">
+          <thead>
+            <tr><th>Data</th><th>Paciente / atendimento</th><th>Status</th><th>Exames</th><th></th></tr>
+          </thead>
+          <tbody id="tabela-pedidos"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== Medicamentos ===== -->
+    <section id="aba-medicamentos" style="display:none;">
+      <div class="barra-acoes">
+        <span class="espaco"></span>
+        <button class="botao botao-primario" id="btn-novo-medicamento"><i class="bi bi-plus-lg"></i> Novo medicamento</button>
+      </div>
+      <div class="card tabela-wrap">
+        <table class="tabela">
+          <thead>
+            <tr><th>Nome</th><th>Descrição</th><th>Estoque</th><th></th></tr>
+          </thead>
+          <tbody id="tabela-medicamentos"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== Exames ===== -->
+    <section id="aba-exames" style="display:none;">
+      <div class="barra-acoes">
+        <span class="espaco"></span>
+        <button class="botao botao-primario" id="btn-novo-exame"><i class="bi bi-plus-lg"></i> Novo exame</button>
+      </div>
+      <div class="card tabela-wrap">
+        <table class="tabela">
+          <thead>
+            <tr><th>Nome</th><th>Descrição</th><th></th></tr>
+          </thead>
+          <tbody id="tabela-exames"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="../services/api.js"></script>
+  <script src="../services/layout.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

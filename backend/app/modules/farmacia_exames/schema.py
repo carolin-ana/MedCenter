@@ -26,7 +26,7 @@ class ExameResponse(ExameCreate):
 
 
 
-from datetime import datetime
+from datetime import date, datetime
 
 
 class PrescricaoCreate(BaseModel):
@@ -81,11 +81,11 @@ class PedidoExameItemCreate(BaseModel):
     id_pedido_exame: int
     id_exame: int
     observacoes: str | None = None
+    resultado: str | None = None
+    data_resultado: date | None = None
 
 
 class PedidoExameItemResponse(PedidoExameItemCreate):
     id_pedido_exame_item: int
 
     model_config = ConfigDict(from_attributes=True)
-
-

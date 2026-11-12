@@ -1,12 +1,11 @@
-
 from typing import List
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.security import get_current_user
 from app.modules.farmacia_exames import service
-from app.modules.farmacia_exames.models import Medicamento, Exame, Prescricao, PrescricaoMedicamento, PedidoExame, PedidoExameItem
 
 from app.modules.farmacia_exames.schema import (
     MedicamentoCreate,
@@ -23,26 +22,23 @@ from app.modules.farmacia_exames.schema import (
     PedidoExameItemResponse,
 )
 
+# Todas as rotas deste módulo exigem login (token JWT), definido uma vez só aqui.
+router = APIRouter(
+    tags=["Farmácia & Exames"],
+    dependencies=[Depends(get_current_user)],
+)
 
-router = APIRouter()
 
-from pydantic import BaseModel
+# =========================
+# MEDICAMENTOS
+# =========================
 
-class MedicamentoEntrada(BaseModel):
-    nome: str
-    descricao: str | None = None
-    quantidade_estoque: int = 0
-
-class ExameEntrada(BaseModel):
-    nome: str
-    descricao: str | None = None
-
-#=======================Listar Medicamentos==========/================*/
+#=======================Listar Medicamentos==========================*/
 @router.get("/medicamentos", response_model=list[MedicamentoResponse])
 def listar_medicamentos(db: Session = Depends(get_db)):
     return service.listar_medicamentos(db)
 
-#=======================Cadastrar Medicamento==========================*/   
+#=======================Cadastrar Medicamento==========================*/
 @router.post("/medicamentos", response_model=MedicamentoResponse)
 def cadastrar_medicamento(
     dados: MedicamentoCreate,
@@ -69,13 +65,17 @@ def excluir_medicamento(
     return service.excluir_medicamento(db, id_medicamento)
 
 
-#=======================Listar Exames==========================*/ 
+# =========================
+# EXAMES
+# =========================
+
+#=======================Listar Exames==========================*/
 @router.get("/exames", response_model=list[ExameResponse])
 def listar_exames(db: Session = Depends(get_db)):
     return service.listar_exames(db)
 
 
- #=======================Cadastrar Exame==========================*/
+#=======================Cadastrar Exame==========================*/
 @router.post("/exames", response_model=ExameResponse)
 def cadastrar_exame(
     dados: ExameCreate,
@@ -93,7 +93,7 @@ def atualizar_exame(
 ):
     return service.atualizar_exame(db, id_exame, dados)
 
-#=======================Excluir Exame==========================
+#=======================Excluir Exame==========================*/
 @router.delete("/exames/{id_exame}")
 def excluir_exame(
     id_exame: int,
@@ -101,32 +101,24 @@ def excluir_exame(
 ):
     return service.excluir_exame(db, id_exame)
 
-#=======================Lista Prescrições==========================*/
+
+# =========================
+# PRESCRIÇÕES
+# =========================
+
+#=======================Listar Prescrições==========================*/
+@router.get("/prescricoes", response_model=List[PrescricaoResponse])
+def listar_prescricoes(db: Session = Depends(get_db)):
+    return service.listar_prescricoes(db)
 
 
+#=======================Buscar Prescrição==========================*/
 @router.get("/prescricoes/{id_prescricao}", response_model=PrescricaoResponse)
 def buscar_prescricao(
     id_prescricao: int,
     db: Session = Depends(get_db),
 ):
     return service.buscar_prescricao(db, id_prescricao)
-
-
-
-#======================Listar Prescrição==========================*/
-@router.get("/prescricoes/{id_prescricao}", response_model=PrescricaoResponse)
-def buscar_prescricao(
-    id_prescricao: int,
-    db: Session = Depends(get_db),
-):
-    registro = db.query(Prescricao).filter(
-        Prescricao.id_prescricao == id_prescricao
-    ).first()
-
-    if registro is None:
-        raise HTTPException(status_code=404, detail="Prescrição não encontrada")
-
-    return registro
 
 #=======================Cadastrar Prescrição==========================*/
 @router.post("/prescricoes", response_model=PrescricaoResponse)
@@ -153,7 +145,6 @@ def excluir_prescricao(
 ):
     return service.excluir_prescricao(db, id_prescricao)
 
-#=======================Listar Prescrição Medicamento==========================*/
 
 # =========================
 # PRESCRIÇÃO DE MEDICAMENTOS
@@ -219,8 +210,6 @@ def excluir_prescricao_medicamento(
     )
 
 
-   
-
 # =========================
 # PEDIDOS DE EXAMES
 # =========================
@@ -277,7 +266,6 @@ def excluir_pedido_exame(
     db: Session = Depends(get_db),
 ):
     return service.excluir_pedido_exame(db, id_pedido_exame)
-
 
 
 # =========================
@@ -342,4 +330,3 @@ def excluir_pedido_exame_item(
     return service.excluir_pedido_exame_item(
         db, id_pedido_exame_item
     )
-

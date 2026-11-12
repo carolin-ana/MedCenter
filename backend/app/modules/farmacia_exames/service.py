@@ -1,5 +1,6 @@
 
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.modules.farmacia_exames.models import (
@@ -41,6 +42,13 @@ def salvar_novo(db: Session, registro):
         db.commit()
         db.refresh(registro)
         return registro
+    except IntegrityError:
+        # ex: id_atendimento, id_medicamento ou id_exame que não existem
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="Dados inválidos: confira se os registros referenciados existem",
+        )
     except Exception:
         db.rollback()
         raise
@@ -51,6 +59,12 @@ def salvar_alteracao(db: Session, registro):
         db.commit()
         db.refresh(registro)
         return registro
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="Dados inválidos: confira se os registros referenciados existem",
+        )
     except Exception:
         db.rollback()
         raise
@@ -60,6 +74,13 @@ def excluir_registro(db: Session, registro):
     try:
         db.delete(registro)
         db.commit()
+    except IntegrityError:
+        # ex: medicamento que já está em uma prescrição
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Não é possível excluir: existem registros vinculados a este item",
+        )
     except Exception:
         db.rollback()
         raise
@@ -101,14 +122,7 @@ def atualizar_medicamento(
 
 def excluir_medicamento(db: Session, id_medicamento: int):
     medicamento = buscar_medicamento(db, id_medicamento)
-
-    try:
-        db.delete(medicamento)
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
-
+    excluir_registro(db, medicamento)
     return {"mensagem": "Medicamento excluído com sucesso"}
 
 
@@ -316,6 +330,8 @@ def cadastrar_pedido_exame_item(
         id_pedido_exame=dados.id_pedido_exame,
         id_exame=dados.id_exame,
         observacoes=dados.observacoes,
+        resultado=dados.resultado,
+        data_resultado=dados.data_resultado,
     )
     return salvar_novo(db, novo)
 
@@ -329,6 +345,8 @@ def atualizar_pedido_exame_item(
     registro.id_pedido_exame = dados.id_pedido_exame
     registro.id_exame = dados.id_exame
     registro.observacoes = dados.observacoes
+    registro.resultado = dados.resultado
+    registro.data_resultado = dados.data_resultado
     return salvar_alteracao(db, registro)
 
 
