@@ -37,8 +37,8 @@
         <a href="index.html" class="ativo"><i class="bi bi-grid"></i> Dashboard</a>
         <a href="pacientes/index.html"><i class="bi bi-people"></i> Pacientes</a>
         <a href="agenda/index.html#medicos"><i class="bi bi-person-badge"></i> Médicos</a>
-        <a href="agenda/index.html"><i class="bi bi-calendar3"></i> Agendamentos</a>
-        <a href="farmacia-exames/index.html"><i class="bi bi-file-earmark-text"></i> Resultados</a>
+        <a href="agenda/index.html" id="menu-agendamentos"><i class="bi bi-calendar3"></i> Agendamentos</a>
+        <a href="farmacia-exames/index.html" id="menu-resultados"><i class="bi bi-file-earmark-text"></i> Resultados</a>
         <a href="financeiro/index.html"><i class="bi bi-bar-chart"></i> Financeiro</a>
         <a href="pacientes/index.html#convenios"><i class="bi bi-credit-card-2-front"></i> Convênios</a>
       </nav>
@@ -46,7 +46,7 @@
       <div class="rodape-usuario">
         <div class="avatar-circulo" id="iniciais-usuario">—</div>
         <div>
-          <div class="nome" id="nome-usuario">—</div>
+          <div class="nome">Usuário logado</div>
           <div class="email" id="email-usuario"></div>
         </div>
       </div>
@@ -58,12 +58,7 @@
           <h1>Dashboard</h1>
           <p class="data-hoje" id="data-hoje"></p>
         </div>
-        <div class="busca">
-          <i class="bi bi-search"></i>
-          <input type="text" placeholder="Busca rápida..." disabled />
-        </div>
         <div class="topo-acoes">
-          <div class="sino"><i class="bi bi-bell"></i><span class="ponto"></span></div>
           <button class="btn btn-sm btn-outline-secondary" onclick="fazerLogout()">Sair</button>
         </div>
       </header>
@@ -72,27 +67,27 @@
 
         <div class="grid-stats">
           <div class="card card-stat">
+            <div class="rotulo">Consultas hoje
+              <div class="icone-stat" style="background:#e7f1ff;color:#1b5fc2;"><i class="bi bi-calendar3"></i></div>
+            </div>
+            <div class="numero" id="stat-consultas">—</div>
+            <div class="detalhe" id="detalhe-consultas">carregando...</div>
+          </div>
+
+          <div class="card card-stat">
             <div class="rotulo">Pacientes cadastrados
               <div class="icone-stat"><i class="bi bi-people"></i></div>
             </div>
             <div class="numero" id="stat-pacientes">—</div>
-            <div class="detalhe">total no sistema</div>
+            <div class="detalhe" id="detalhe-pacientes">carregando...</div>
           </div>
 
           <div class="card card-stat">
-            <div class="rotulo">Faturamentos
-              <div class="icone-stat" style="background:#fff3e0;color:#b4660a;"><i class="bi bi-receipt"></i></div>
+            <div class="rotulo">Resultados pendentes
+              <div class="icone-stat" style="background:#fff3e0;color:#b4660a;"><i class="bi bi-file-earmark-text"></i></div>
             </div>
-            <div class="numero" id="stat-faturamentos">—</div>
-            <div class="detalhe">registros no sistema</div>
-          </div>
-
-          <div class="card card-stat">
-            <div class="rotulo">Consultas hoje
-              <div class="icone-stat" style="background:#e7f1ff;color:#1b5fc2;"><i class="bi bi-calendar3"></i></div>
-            </div>
-            <div class="numero">—</div>
-            <div class="detalhe placeholder-aviso">módulo de agenda em construção</div>
+            <div class="numero" id="stat-pendentes">—</div>
+            <div class="detalhe" id="detalhe-pendentes">carregando...</div>
           </div>
 
           <div class="card card-stat">
@@ -100,15 +95,21 @@
               <div class="icone-stat" style="background:#e6f7ef;color:#0f7a4d;"><i class="bi bi-cash-stack"></i></div>
             </div>
             <div class="numero" id="stat-receita">—</div>
-            <div class="detalhe">soma de todos os faturamentos</div>
+            <div class="detalhe" id="detalhe-receita">carregando...</div>
           </div>
         </div>
 
         <div class="row g-3">
           <div class="col-lg-8">
             <div class="card">
-              <div class="secao-titulo">Pacientes cadastrados recentemente</div>
-              <div id="lista-pacientes-recentes">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
+                <div>
+                  <div class="secao-titulo" style="margin:0;">Agenda de hoje</div>
+                  <div class="placeholder-aviso" id="subtitulo-agenda" style="font-style:normal;"></div>
+                </div>
+                <a href="agenda/index.html" class="botao botao-primario botao-sm" style="text-decoration:none;">Ver agenda</a>
+              </div>
+              <div id="lista-agenda-hoje">
                 <p class="placeholder-aviso">Carregando...</p>
               </div>
             </div>
@@ -123,8 +124,10 @@
             </div>
 
             <div class="card">
-              <div class="secao-titulo">Agenda de hoje</div>
-              <p class="placeholder-aviso">O módulo de agenda ainda não tem rotas prontas — assim que o P2 terminar, essa lista passa a mostrar as consultas do dia.</p>
+              <div class="secao-titulo">Pacientes recentes</div>
+              <div id="lista-pacientes-recentes">
+                <p class="placeholder-aviso">Carregando...</p>
+              </div>
             </div>
           </div>
         </div>
@@ -134,18 +137,20 @@
   </div>
 
   <script src="services/api.js"></script>
+  <script src="services/layout.js"></script>
   <script>
     document.getElementById("data-hoje").textContent = new Date().toLocaleDateString("pt-BR", {
       weekday: "long", day: "2-digit", month: "long", year: "numeric",
     });
 
+    const el = (id) => document.getElementById(id);
+    const CLASSE_STATUS = { agendada: "pill-info", realizada: "pill-sucesso", cancelada: "pill-alerta" };
+
     async function fazerLogin() {
-      const email = document.getElementById("campo-email").value;
-      const senha = document.getElementById("campo-senha").value;
-      const erro = document.getElementById("erro-login");
+      const erro = el("erro-login");
       erro.style.display = "none";
       try {
-        await login(email, senha);
+        await login(el("campo-email").value, el("campo-senha").value);
         mostrarApp();
       } catch (e) {
         erro.textContent = e.message;
@@ -159,49 +164,135 @@
     }
 
     function mostrarApp() {
-      document.getElementById("tela-login").style.display = "none";
-      document.getElementById("app").style.display = "flex";
+      el("tela-login").style.display = "none";
+      el("app").style.display = "flex";
 
-      const email = obterToken() ? JSON.parse(atob(obterToken().split(".")[1])).perfil : "";
-      document.getElementById("nome-usuario").textContent = "Administrador";
-      document.getElementById("email-usuario").textContent = email;
-      document.getElementById("iniciais-usuario").textContent = "AD";
+      const perfil = lerPerfilDoToken();
+      el("email-usuario").textContent = "perfil: " + perfil;
+      el("iniciais-usuario").textContent = perfil.slice(0, 2).toUpperCase();
 
       carregarDashboard();
     }
 
-    async function carregarDashboard() {
-      try {
-        const pacientes = await apiFetch("/pacientes");
-        document.getElementById("stat-pacientes").textContent = pacientes.length;
+    function hora(iso) {
+      const parte = String(iso || "").split("T")[1];
+      return parte ? parte.slice(0, 5) : "—";
+    }
 
-        const listaEl = document.getElementById("lista-pacientes-recentes");
-        listaEl.innerHTML = "";
-        pacientes.slice(-5).reverse().forEach((p) => {
-          const linha = document.createElement("div");
-          linha.className = "lista-item";
-          linha.innerHTML = `<span>${p.nome}</span><span class="pill pill-info">${p.id_convenio ? "Convênio" : "Particular"}</span>`;
-          listaEl.appendChild(linha);
-        });
+    function moeda(valor) {
+      return Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    // Número em destaque no menu lateral (ex: consultas agendadas de hoje)
+    function definirBadge(idLink, quantidade) {
+      const link = el(idLink);
+      const antigo = link.querySelector(".badge-contagem");
+      if (antigo) antigo.remove();
+      if (quantidade > 0) {
+        const badge = document.createElement("span");
+        badge.className = "badge-contagem";
+        badge.textContent = quantidade;
+        link.appendChild(badge);
+      }
+    }
+
+    async function carregarDashboard() {
+      const hoje = hojeISO();
+      const resultados = await Promise.allSettled([
+        apiFetch("/pacientes"),
+        apiFetch(`/consultas?data=${hoje}`),
+        apiFetch("/medicos"),
+        apiFetch("/faturamento/"),
+        apiFetch("/pedidos-exames-itens"),
+      ]);
+      const [pacientes, consultas, medicos, faturamentos, itensExame] =
+        resultados.map((r) => (r.status === "fulfilled" ? r.value : null));
+
+      // ----- Pacientes -----
+      if (pacientes) {
+        const comConvenio = pacientes.filter((p) => p.id_convenio).length;
+        el("stat-pacientes").textContent = pacientes.length;
+        el("detalhe-pacientes").textContent = `${comConvenio} com convênio · ${pacientes.length - comConvenio} particulares`;
+
+        const lista = el("lista-pacientes-recentes");
         if (pacientes.length === 0) {
-          listaEl.innerHTML = '<p class="placeholder-aviso">Nenhum paciente cadastrado ainda.</p>';
+          lista.innerHTML = '<p class="placeholder-aviso">Nenhum paciente cadastrado ainda.</p>';
+        } else {
+          lista.innerHTML = pacientes
+            .slice(-5)
+            .reverse()
+            .map((p) => `<div class="lista-item"><span>${escapeHtml(p.nome)}</span><span class="pill ${p.id_convenio ? "pill-info" : "pill-alerta"}">${p.id_convenio ? "Convênio" : "Particular"}</span></div>`)
+            .join("");
         }
-      } catch (e) {
-        document.getElementById("stat-pacientes").textContent = "erro";
+      } else {
+        el("stat-pacientes").textContent = "—";
+        el("detalhe-pacientes").textContent = "não foi possível carregar";
+        el("lista-pacientes-recentes").innerHTML = '<p class="placeholder-aviso">Não foi possível carregar.</p>';
       }
 
-      try {
-        const faturamentos = await apiFetch("/faturamento/");
-        document.getElementById("stat-faturamentos").textContent = faturamentos.length;
-        const total = faturamentos.reduce((s, f) => s + Number(f.valor_total), 0);
+      // ----- Agenda de hoje -----
+      if (consultas) {
+        const ativas = consultas.filter((c) => c.status !== "cancelada");
+        const realizadas = ativas.filter((c) => c.status === "realizada").length;
+        const agendadas = ativas.filter((c) => c.status === "agendada").length;
+        el("stat-consultas").textContent = ativas.length;
+        el("detalhe-consultas").textContent = `${realizadas} realizadas · ${agendadas} agendadas`;
+        el("subtitulo-agenda").textContent = formatarData(hoje);
+        definirBadge("menu-agendamentos", agendadas);
+
+        const nomePaciente = {};
+        const nomeMedico = {};
+        (pacientes || []).forEach((p) => (nomePaciente[p.id_paciente] = p.nome));
+        (medicos || []).forEach((m) => (nomeMedico[m.id_medico] = m.nome));
+
+        const lista = el("lista-agenda-hoje");
+        if (consultas.length === 0) {
+          lista.innerHTML = '<p class="placeholder-aviso">Nenhuma consulta marcada para hoje.</p>';
+        } else {
+          lista.innerHTML = consultas
+            .map(
+              (c) => `<div class="lista-item" style="padding:0.8rem 0;">
+                <div style="display:flex;gap:1rem;align-items:center;">
+                  <strong style="min-width:48px;color:#0f6e56;">${hora(c.data_consulta)}</strong>
+                  <div>
+                    <div><strong>${escapeHtml(nomePaciente[c.id_paciente] || "Paciente #" + c.id_paciente)}</strong></div>
+                    <small style="color:#6c757d;">${escapeHtml(nomeMedico[c.id_medico] || "Médico #" + c.id_medico)}</small>
+                  </div>
+                </div>
+                <span class="pill ${CLASSE_STATUS[c.status] || "pill-info"}">${escapeHtml(c.status)}</span>
+              </div>`
+            )
+            .join("");
+        }
+      } else {
+        el("stat-consultas").textContent = "—";
+        el("detalhe-consultas").textContent = "não foi possível carregar";
+        el("lista-agenda-hoje").innerHTML = '<p class="placeholder-aviso">Não foi possível carregar a agenda.</p>';
+      }
+
+      // ----- Resultados de exame pendentes -----
+      if (itensExame) {
+        const pendentes = itensExame.filter((i) => !i.resultado).length;
+        el("stat-pendentes").textContent = pendentes;
+        el("detalhe-pendentes").textContent = pendentes === 1 ? "exame aguardando resultado" : "exames aguardando resultado";
+        definirBadge("menu-resultados", pendentes);
+      } else {
+        el("stat-pendentes").textContent = "—";
+        el("detalhe-pendentes").textContent = "não foi possível carregar";
+      }
+
+      // ----- Faturamento -----
+      if (faturamentos) {
+        const total = faturamentos.reduce((soma, f) => soma + Number(f.valor_total), 0);
         const pendentes = faturamentos.filter((f) => f.status === "pendente").length;
-        const totalFormatado = total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-        document.getElementById("stat-receita").textContent = totalFormatado;
-        document.getElementById("destaque-receita").textContent = totalFormatado;
-        document.getElementById("destaque-qtd").textContent = faturamentos.length;
-        document.getElementById("destaque-pendentes").textContent = pendentes;
-      } catch (e) {
-        document.getElementById("stat-faturamentos").textContent = "—";
+        el("stat-receita").textContent = moeda(total);
+        el("detalhe-receita").textContent = `${faturamentos.length} faturamentos`;
+        el("destaque-receita").textContent = moeda(total);
+        el("destaque-qtd").textContent = faturamentos.length;
+        el("destaque-pendentes").textContent = pendentes;
+      } else {
+        el("stat-receita").textContent = "—";
+        el("detalhe-receita").textContent = "não foi possível carregar";
       }
     }
 
