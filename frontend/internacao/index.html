@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedCenter - Internação e Enfermagem</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+
+  <div id="conteudo-pagina">
+
+    <div class="abas">
+      <button class="aba ativa" data-aba="internacoes">Internações</button>
+      <button class="aba" data-aba="enfermeiros">Enfermeiros</button>
+      <button class="aba" data-aba="quartos">Quartos</button>
+      <button class="aba" data-aba="atendimentos">Atendimentos</button>
+    </div>
+
+    <section id="aba-internacoes">
+      <div class="barra-acoes">
+        <span class="espaco"></span>
+        <button class="botao botao-primario" id="btn-nova-internacao">
+          <i class="bi bi-plus-lg"></i> Nova internação
+        </button>
+      </div>
+      <div class="card tabela-wrap">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Paciente</th>
+              <th>Médico responsável</th>
+              <th>Entrada</th>
+              <th>Saída</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tabela-internacoes"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="aba-enfermeiros" style="display:none;">
+      <div class="barra-acoes">
+        <span class="espaco"></span>
+        <button class="botao botao-primario" id="btn-novo-enfermeiro">
+          <i class="bi bi-plus-lg"></i> Novo enfermeiro
+        </button>
+      </div>
+      <div class="card tabela-wrap">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>COREN</th>
+              <th>Turno</th>
+              <th>Telefone</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tabela-enfermeiros"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="aba-quartos" style="display:none;">
+      <div class="barra-acoes">
+        <span class="espaco"></span>
+        <button class="botao botao-primario" id="btn-novo-quarto">
+          <i class="bi bi-plus-lg"></i> Novo quarto
+        </button>
+      </div>
+      <div class="card tabela-wrap">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Tipo</th>
+              <th>Capacidade</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tabela-quartos"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="aba-atendimentos" style="display:none;">
+      <div class="barra-acoes">
+        <span class="espaco"></span>
+        <button class="botao botao-primario" id="btn-novo-atendimento">
+          <i class="bi bi-plus-lg"></i> Novo atendimento
+        </button>
+      </div>
+      <div class="card tabela-wrap">
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Internação</th>
+              <th>Enfermeiro</th>
+              <th>Data</th>
+              <th>Observações</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tabela-atendimentos"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="../services/api.js"></script>
+  <script src="../services/layout.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
