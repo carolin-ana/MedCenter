@@ -1,7 +1,7 @@
-
 /*
  * Módulo de Internação e Enfermagem
  * Cadastro, listagem, edição e exclusão.
+ * Acrescentado: alocar/transferir quarto e dar alta (marcado com "NOVO").
  */
 
 let internacoes = [];
@@ -10,6 +10,7 @@ let quartos = [];
 let atendimentos = [];
 let pacientes = [];
 let medicos = [];
+let vinculos = []; // NOVO: ocupação de quartos (internacao-quartos)
 
 const el = (id) => document.getElementById(id);
 
@@ -43,6 +44,40 @@ function nomeMedico(id) {
 function nomeEnfermeiro(id) {
   const enfermeiro = enfermeiros.find((e) => e.id_enfermeiro === Number(id));
   return enfermeiro ? enfermeiro.nome_enfermeiro : `Enfermeiro #${id}`;
+}
+
+// ----- NOVO: apoio para quarto e alta -----
+function agoraISO() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
+const vinculoAtivo = (idInternacao) =>
+  vinculos.find((v) => v.id_internacao === idInternacao && !v.data_saida);
+
+const ocupacao = (idQuarto) =>
+  vinculos.filter((v) => v.id_quarto === idQuarto && !v.data_saida).length;
+
+const rotuloQuarto = (q) =>
+  q ? `${q.numero_quarto || "s/n"}${q.tipo ? " · " + q.tipo : ""}` : "—";
+
+function quartosComVaga(ignorarIdQuarto = null) {
+  return quartos.filter(
+    (q) =>
+      q.status !== "manutencao" &&
+      ocupacao(q.id_quarto) < (q.capacidade || 1) &&
+      q.id_quarto !== ignorarIdQuarto
+  );
+}
+
+function opcoesQuartos(lista) {
+  return lista
+    .map(
+      (q) =>
+        `<option value="${q.id_quarto}">${escapeHtml(rotuloQuarto(q))} (${ocupacao(q.id_quarto)}/${q.capacidade || 1})</option>`
+    )
+    .join("");
 }
 
 // ======================= Inicialização =======================
@@ -96,7 +131,8 @@ async function carregarDados() {
     apiFetch("/internacao/quartos"),
     apiFetch("/internacao/atendimentos"),
     apiFetch("/pacientes"),
-    apiFetch("/medicos")
+    apiFetch("/medicos"),
+    apiFetch("/internacao/internacao-quartos") // NOVO
   ]);
 
   internacoes = resultados[0].status === "fulfilled" ? resultados[0].value : [];
@@ -105,6 +141,7 @@ async function carregarDados() {
   atendimentos = resultados[3].status === "fulfilled" ? resultados[3].value : [];
   pacientes = resultados[4].status === "fulfilled" ? resultados[4].value : [];
   medicos = resultados[5].status === "fulfilled" ? resultados[5].value : [];
+  vinculos = resultados[6].status === "fulfilled" ? resultados[6].value : []; // NOVO
 
   renderInternacoes();
   renderEnfermeiros();
@@ -130,27 +167,45 @@ function renderInternacoes() {
     return;
   }
 
-  corpo.innerHTML = internacoes.map((i) => `
+  corpo.innerHTML = internacoes.map((i) => {
+    // NOVO: quarto atual embaixo do nome do paciente, e botões de quarto e alta
+    const ativa = !i.data_saida;
+    const va = ativa ? vinculoAtivo(i.id_internacao) : null;
+    const quartoTxt = ativa
+      ? `<br><small style="color:#6c757d;">${
+          va ? "Quarto " + escapeHtml(rotuloQuarto(quartos.find((q) => q.id_quarto === va.id_quarto))) : "sem quarto"
+        }</small>`
+      : "";
+    const botoesNovos = ativa
+      ? `<button class="botao botao-secundario botao-sm" data-acao="quarto" data-id="${i.id_internacao}">${va ? "Transferir" : "Alocar quarto"}</button>
+         <button class="botao botao-secundario botao-sm" data-acao="alta" data-id="${i.id_internacao}">Dar alta</button>`
+      : "";
+
+    return `
     <tr>
       <td>${i.id_internacao}</td>
-      <td><strong>${valorSeguro(nomePaciente(i.id_paciente))}</strong></td>
+      <td><strong>${valorSeguro(nomePaciente(i.id_paciente))}</strong>${quartoTxt}</td>
       <td>${valorSeguro(nomeMedico(i.id_medico_responsavel))}</td>
       <td>${i.data_entrada ? formatarDataHora(i.data_entrada) : "—"}</td>
       <td>${i.data_saida ? formatarDataHora(i.data_saida) : "Em andamento"}</td>
       <td>
         <div class="acoes">
+          ${botoesNovos}
           <button class="botao botao-secundario botao-sm" data-acao="editar" data-id="${i.id_internacao}">Editar</button>
           <button class="botao botao-perigo botao-sm" data-acao="excluir" data-id="${i.id_internacao}">Excluir</button>
         </div>
       </td>
     </tr>
-  `).join("");
+  `;
+  }).join("");
 
   corpo.querySelectorAll("button[data-acao]").forEach((botao) => {
     const item = internacoes.find((i) => i.id_internacao === Number(botao.dataset.id));
 
     botao.addEventListener("click", () => {
       if (botao.dataset.acao === "editar") abrirFormInternacao(item);
+      if (botao.dataset.acao === "quarto") abrirAlocarQuarto(item); // NOVO
+      if (botao.dataset.acao === "alta") darAlta(item); // NOVO
       if (botao.dataset.acao === "excluir") excluirRegistro(
         "/internacao/internacoes",
         item.id_internacao,
@@ -177,6 +232,14 @@ function abrirFormInternacao(item = null) {
       </option>
     `).join("")}
   `;
+
+  // NOVO: escolher o quarto já na hora de internar
+  const blocoQuarto = editando
+    ? ""
+    : `<div class="form-grupo">
+         <label>Quarto</label>
+         <select id="i-quarto"><option value="">Escolher depois</option>${opcoesQuartos(quartosComVaga())}</select>
+       </div>`;
 
   const html = `
     <div class="form-grupo">
@@ -209,6 +272,8 @@ function abrirFormInternacao(item = null) {
       <label>Motivo da internação</label>
       <textarea id="i-motivo">${escapeHtml(item?.motivo_internacao || "")}</textarea>
     </div>
+
+    ${blocoQuarto}
   `;
 
   abrirModal(editando ? "Editar internação" : "Nova internação", html, {
@@ -233,16 +298,86 @@ function abrirFormInternacao(item = null) {
           body: JSON.stringify(dados)
         });
       } else {
-        await apiFetch("/internacao/internacoes", {
+        const nova = await apiFetch("/internacao/internacoes", {
           method: "POST",
           body: JSON.stringify(dados)
         });
+
+        // NOVO: liga o paciente ao quarto escolhido
+        const idQuarto = corpo.querySelector("#i-quarto").value;
+        if (idQuarto) {
+          try {
+            await apiFetch("/internacao/internacao-quartos", {
+              method: "POST",
+              body: JSON.stringify({
+                id_internacao: nova.id_internacao,
+                id_quarto: Number(idQuarto),
+                data_entrada: dados.data_entrada,
+                data_saida: null
+              })
+            });
+          } catch (e) {
+            await carregarDados();
+            mostrarAviso("Internação cadastrada, mas o quarto não foi alocado: " + e.message, "erro");
+            return;
+          }
+        }
       }
 
       await carregarDados();
       mostrarAviso(editando ? "Internação atualizada." : "Internação cadastrada.");
     }
   });
+}
+
+// NOVO: alocar ou transferir de quarto
+function abrirAlocarQuarto(item) {
+  const atual = vinculoAtivo(item.id_internacao);
+  const livres = quartosComVaga(atual ? atual.id_quarto : null);
+
+  const html = livres.length
+    ? `<div class="form-grupo">
+         <label>${atual ? "Novo quarto" : "Quarto"} *</label>
+         <select id="aq-quarto"><option value="">Selecione...</option>${opcoesQuartos(livres)}</select>
+       </div>
+       <small class="placeholder-aviso">Aparecem só os quartos com vaga e fora de manutenção. Os números mostram a ocupação.</small>`
+    : `<p class="placeholder-aviso">Não há quarto com vaga. Cadastre um quarto ou libere um existente.</p>`;
+
+  abrirModal(atual ? "Transferir de quarto" : "Alocar quarto", html, {
+    textoSalvar: "Confirmar",
+    aoSalvar: livres.length
+      ? async (corpo) => {
+          const idQuarto = corpo.querySelector("#aq-quarto").value;
+          if (!idQuarto) throw new Error("Selecione um quarto.");
+          await apiFetch("/internacao/internacao-quartos", {
+            method: "POST",
+            body: JSON.stringify({
+              id_internacao: item.id_internacao,
+              id_quarto: Number(idQuarto),
+              data_entrada: agoraISO(),
+              data_saida: null
+            })
+          });
+          await carregarDados();
+          mostrarAviso(atual ? "Paciente transferido de quarto." : "Quarto alocado.");
+        }
+      : null
+  });
+}
+
+// NOVO: dar alta (o backend encerra a ocupação e libera o quarto)
+async function darAlta(item) {
+  if (!confirm(`Dar alta para ${nomePaciente(item.id_paciente)}?`)) return;
+  try {
+    await apiFetch(`/internacao/internacoes/${item.id_internacao}`, {
+      method: "PUT",
+      body: JSON.stringify({ data_saida: agoraISO() })
+    });
+    await carregarDados();
+    mostrarAviso("Alta registrada. O quarto foi liberado.");
+  } catch (e) {
+    mostrarAviso(e.message, "erro");
+  }
 }
 
 // ======================= Enfermeiros =======================
@@ -408,6 +543,7 @@ function abrirFormQuarto(item = null) {
         <select id="q-status">
           <option value="disponivel" ${!item || item.status === "disponivel" ? "selected" : ""}>Disponível</option>
           <option value="ocupado" ${item?.status === "ocupado" ? "selected" : ""}>Ocupado</option>
+          <option value="manutencao" ${item?.status === "manutencao" ? "selected" : ""}>Manutenção</option>
         </select>
       </div>
     </div>

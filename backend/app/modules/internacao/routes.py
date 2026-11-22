@@ -1,4 +1,3 @@
-
 """
 Rotas da API de Internação e Enfermagem.
 """
@@ -6,6 +5,7 @@ Rotas da API de Internação e Enfermagem.
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -19,7 +19,34 @@ from app.modules.internacao.service import (
     InternacaoQuartoService,
 )
 
-router = APIRouter()
+router = APIRouter(tags=["Internação & Enfermagem"])
+
+
+# ==================================================
+# FUNÇÕES AUXILIARES
+# ==================================================
+
+def _executar(acao):
+    """Roda uma ação do serviço; regra de negócio violada (ValueError) vira erro 400."""
+    try:
+        return acao()
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro))
+
+
+def _excluir(db: Session, service, registro, mensagem_ok: str):
+    """Exclusão: se houver registros vinculados, avisa (409) em vez de erro 500."""
+    try:
+        service.excluir(registro)
+    except ValueError as erro:
+        raise HTTPException(status_code=409, detail=str(erro))
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Não é possível excluir: existem registros vinculados a este item",
+        )
+    return {"mensagem": mensagem_ok}
 
 
 # ==================================================
@@ -32,7 +59,7 @@ def criar_internacao(
     db: Session = Depends(get_db),
     usuario: dict = Depends(get_current_user),
 ):
-    return InternacaoService(db).criar(dados.model_dump())
+    return _executar(lambda: InternacaoService(db).criar(dados.model_dump()))
 
 
 @router.get("/internacoes", response_model=List[schemas.InternacaoOut])
@@ -66,7 +93,7 @@ def atualizar_internacao(
     registro = service.obter(id_internacao, "id_internacao")
     if not registro:
         raise HTTPException(status_code=404, detail="Internação não encontrada")
-    return service.atualizar(registro, dados.model_dump(exclude_unset=True))
+    return _executar(lambda: service.atualizar(registro, dados.model_dump(exclude_unset=True)))
 
 
 @router.delete("/internacoes/{id_internacao}")
@@ -79,8 +106,7 @@ def excluir_internacao(
     registro = service.obter(id_internacao, "id_internacao")
     if not registro:
         raise HTTPException(status_code=404, detail="Internação não encontrada")
-    service.excluir(registro)
-    return {"mensagem": "Internação excluída com sucesso"}
+    return _excluir(db, service, registro, "Internação excluída com sucesso")
 
 
 # ==================================================
@@ -93,7 +119,7 @@ def criar_enfermeiro(
     db: Session = Depends(get_db),
     usuario: dict = Depends(get_current_user),
 ):
-    return EnfermeiroService(db).criar(dados.model_dump())
+    return _executar(lambda: EnfermeiroService(db).criar(dados.model_dump()))
 
 
 @router.get("/enfermeiros", response_model=List[schemas.EnfermeiroOut])
@@ -127,7 +153,7 @@ def atualizar_enfermeiro(
     registro = service.obter(id_enfermeiro, "id_enfermeiro")
     if not registro:
         raise HTTPException(status_code=404, detail="Enfermeiro não encontrado")
-    return service.atualizar(registro, dados.model_dump(exclude_unset=True))
+    return _executar(lambda: service.atualizar(registro, dados.model_dump(exclude_unset=True)))
 
 
 @router.delete("/enfermeiros/{id_enfermeiro}")
@@ -140,25 +166,26 @@ def excluir_enfermeiro(
     registro = service.obter(id_enfermeiro, "id_enfermeiro")
     if not registro:
         raise HTTPException(status_code=404, detail="Enfermeiro não encontrado")
-    service.excluir(registro)
-    return {"mensagem": "Enfermeiro excluído com sucesso"}
+    return _excluir(db, service, registro, "Enfermeiro excluído com sucesso")
 
 
 # ==================================================
 # ATENDIMENTOS DE ENFERMAGEM
+# (como o módulo é registrado com prefix="/internacao", o caminho
+#  final é /internacao/atendimentos, sem conflito com a Agenda)
 # ==================================================
 
 @router.post("/atendimentos", response_model=schemas.AtendimentoEnfermeiroOut)
-def criar_atendimento(
+def criar_atendimento_enfermagem(
     dados: schemas.AtendimentoEnfermeiroCreate,
     db: Session = Depends(get_db),
     usuario: dict = Depends(get_current_user),
 ):
-    return AtendimentoEnfermeiroService(db).criar(dados.model_dump())
+    return _executar(lambda: AtendimentoEnfermeiroService(db).criar(dados.model_dump()))
 
 
 @router.get("/atendimentos", response_model=List[schemas.AtendimentoEnfermeiroOut])
-def listar_atendimentos(
+def listar_atendimentos_enfermagem(
     db: Session = Depends(get_db),
     usuario: dict = Depends(get_current_user),
 ):
@@ -166,7 +193,7 @@ def listar_atendimentos(
 
 
 @router.get("/atendimentos/{id_atendimento}", response_model=schemas.AtendimentoEnfermeiroOut)
-def obter_atendimento(
+def obter_atendimento_enfermagem(
     id_atendimento: int,
     db: Session = Depends(get_db),
     usuario: dict = Depends(get_current_user),
@@ -180,7 +207,7 @@ def obter_atendimento(
 
 
 @router.put("/atendimentos/{id_atendimento}", response_model=schemas.AtendimentoEnfermeiroOut)
-def atualizar_atendimento(
+def atualizar_atendimento_enfermagem(
     id_atendimento: int,
     dados: schemas.AtendimentoEnfermeiroUpdate,
     db: Session = Depends(get_db),
@@ -190,11 +217,11 @@ def atualizar_atendimento(
     registro = service.obter(id_atendimento, "id_atendimento_enfermeiro")
     if not registro:
         raise HTTPException(status_code=404, detail="Atendimento não encontrado")
-    return service.atualizar(registro, dados.model_dump(exclude_unset=True))
+    return _executar(lambda: service.atualizar(registro, dados.model_dump(exclude_unset=True)))
 
 
 @router.delete("/atendimentos/{id_atendimento}")
-def excluir_atendimento(
+def excluir_atendimento_enfermagem(
     id_atendimento: int,
     db: Session = Depends(get_db),
     usuario: dict = Depends(get_current_user),
@@ -203,8 +230,7 @@ def excluir_atendimento(
     registro = service.obter(id_atendimento, "id_atendimento_enfermeiro")
     if not registro:
         raise HTTPException(status_code=404, detail="Atendimento não encontrado")
-    service.excluir(registro)
-    return {"mensagem": "Atendimento excluído com sucesso"}
+    return _excluir(db, service, registro, "Atendimento excluído com sucesso")
 
 
 # ==================================================
@@ -217,7 +243,7 @@ def criar_quarto(
     db: Session = Depends(get_db),
     usuario: dict = Depends(get_current_user),
 ):
-    return QuartoService(db).criar(dados.model_dump())
+    return _executar(lambda: QuartoService(db).criar(dados.model_dump()))
 
 
 @router.get("/quartos", response_model=List[schemas.QuartoOut])
@@ -251,7 +277,7 @@ def atualizar_quarto(
     registro = service.obter(id_quarto, "id_quarto")
     if not registro:
         raise HTTPException(status_code=404, detail="Quarto não encontrado")
-    return service.atualizar(registro, dados.model_dump(exclude_unset=True))
+    return _executar(lambda: service.atualizar(registro, dados.model_dump(exclude_unset=True)))
 
 
 @router.delete("/quartos/{id_quarto}")
@@ -264,8 +290,7 @@ def excluir_quarto(
     registro = service.obter(id_quarto, "id_quarto")
     if not registro:
         raise HTTPException(status_code=404, detail="Quarto não encontrado")
-    service.excluir(registro)
-    return {"mensagem": "Quarto excluído com sucesso"}
+    return _excluir(db, service, registro, "Quarto excluído com sucesso")
 
 
 # ==================================================
@@ -278,7 +303,7 @@ def criar_vinculo_quarto(
     db: Session = Depends(get_db),
     usuario: dict = Depends(get_current_user),
 ):
-    return InternacaoQuartoService(db).criar(dados.model_dump())
+    return _executar(lambda: InternacaoQuartoService(db).criar(dados.model_dump()))
 
 
 @router.get("/internacao-quartos", response_model=List[schemas.InternacaoQuartoOut])
@@ -314,7 +339,7 @@ def atualizar_vinculo_quarto(
     registro = service.obter(id_vinculo, "id_internacao_quarto")
     if not registro:
         raise HTTPException(status_code=404, detail="Vínculo não encontrado")
-    return service.atualizar(registro, dados.model_dump(exclude_unset=True))
+    return _executar(lambda: service.atualizar(registro, dados.model_dump(exclude_unset=True)))
 
 
 @router.delete("/internacao-quartos/{id_vinculo}")
@@ -327,5 +352,4 @@ def excluir_vinculo_quarto(
     registro = service.obter(id_vinculo, "id_internacao_quarto")
     if not registro:
         raise HTTPException(status_code=404, detail="Vínculo não encontrado")
-    service.excluir(registro)
-    return {"mensagem": "Vínculo excluído com sucesso"}
+    return _excluir(db, service, registro, "Vínculo excluído com sucesso")

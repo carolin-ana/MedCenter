@@ -39,9 +39,9 @@
         <a href="agenda/index.html#medicos"><i class="bi bi-person-badge"></i> Médicos</a>
         <a href="agenda/index.html" id="menu-agendamentos"><i class="bi bi-calendar3"></i> Agendamentos</a>
         <a href="farmacia-exames/index.html" id="menu-resultados"><i class="bi bi-file-earmark-text"></i> Resultados</a>
+        <a href="internacao/index.html"><i class="bi bi-heart-pulse"></i> Internação</a>
         <a href="financeiro/index.html"><i class="bi bi-bar-chart"></i> Financeiro</a>
         <a href="pacientes/index.html#convenios"><i class="bi bi-credit-card-2-front"></i> Convênios</a>
-        <a href="internacao/index.html"><i class="bi bi-hospital"></i> Internação e Enfermagem</a>
       </nav>
 
       <div class="rodape-usuario">
@@ -89,6 +89,14 @@
             </div>
             <div class="numero" id="stat-pendentes">—</div>
             <div class="detalhe" id="detalhe-pendentes">carregando...</div>
+          </div>
+
+          <div class="card card-stat">
+            <div class="rotulo">Internações ativas
+              <div class="icone-stat" style="background:#f3e8ff;color:#7c3aed;"><i class="bi bi-heart-pulse"></i></div>
+            </div>
+            <div class="numero" id="stat-internacoes">—</div>
+            <div class="detalhe" id="detalhe-internacoes">carregando...</div>
           </div>
 
           <div class="card card-stat">
@@ -205,8 +213,9 @@
         apiFetch("/medicos"),
         apiFetch("/faturamento/"),
         apiFetch("/pedidos-exames-itens"),
+        apiFetch("/internacao/internacoes"),
       ]);
-      const [pacientes, consultas, medicos, faturamentos, itensExame] =
+      const [pacientes, consultas, medicos, faturamentos, itensExame, internacoes] =
         resultados.map((r) => (r.status === "fulfilled" ? r.value : null));
 
       // ----- Pacientes -----
@@ -280,6 +289,16 @@
       } else {
         el("stat-pendentes").textContent = "—";
         el("detalhe-pendentes").textContent = "não foi possível carregar";
+      }
+
+      // ----- Internações -----
+      if (internacoes) {
+        const ativas = internacoes.filter((i) => !i.data_saida).length;
+        el("stat-internacoes").textContent = ativas;
+        el("detalhe-internacoes").textContent = `${internacoes.length - ativas} com alta · ${internacoes.length} no total`;
+      } else {
+        el("stat-internacoes").textContent = "—";
+        el("detalhe-internacoes").textContent = "não foi possível carregar";
       }
 
       // ----- Faturamento -----

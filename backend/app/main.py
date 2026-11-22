@@ -69,3 +69,4 @@ from app.modules.agenda.routes import router as agenda_router
 app.include_router(agenda_router)
 from app.modules.internacao.routes import router as internacao_router
 app.include_router(internacao_router, prefix="/internacao", tags=["Internacao e Enfermagem"])
+

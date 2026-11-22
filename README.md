@@ -140,10 +140,15 @@ backend/
       internacao/
       financeiro/
 frontend/
-  index.html            dashboard
+  index.html            dashboard (consultas de hoje, resultados pendentes, receita)
   style.css
-  services/api.js       funções que chamam a API
-  financeiro/
+  services/
+    api.js              funções que chamam a API (login, token, erros)
+    layout.js           menu lateral, modal e avisos compartilhados
+  pacientes/            pacientes, contatos, prontuário e convênios
+  agenda/               consultas, médicos e especialidades
+  farmacia-exames/      prescrições, pedidos de exame, medicamentos e exames
+  financeiro/           receita por convênio e por status
 docs/
   diagrama-er.png
 ```
@@ -156,12 +161,27 @@ docs/
 |---|---|---|---|
 | Autenticação | Ana Carolina | ✅ | ✅ (login no dashboard) |
 | Financeiro | Ana Carolina | ✅ | ✅ |
-| Pacientes & Prontuário | Larissa | ✅ | ⬜ |
-| Corpo Clínico & Agenda | Dennys | ✅ | ⬜ |
-| Farmácia & Exames | Matheus Cardoso | 🔶 em andamento | ⬜ |
-| Internação & Enfermagem | Matheus Silva | ⬜ (só models) | ⬜ |
+| Pacientes & Prontuário | Larissa | ✅ | ✅ |
+| Corpo Clínico & Agenda | Dennys | ✅ | ✅ |
+| Farmácia & Exames | Matheus Cardoso | ✅ | ✅ |
+| Internação & Enfermagem | Matheus Silva | 🔶 em andamento | ⬜ |
 
 Legenda: ✅ pronto · 🔶 em andamento · ⬜ não iniciado
+
+---
+
+## Roteiro de demonstração
+
+Fluxo completo, na ordem em que os dados dependem uns dos outros:
+
+1. **Login** na tela inicial.
+2. **Convênios e Pacientes:** cadastrar um convênio e um paciente (com e sem convênio).
+3. **Agenda:** cadastrar uma especialidade, um médico com a especialidade e **agendar uma consulta** para o paciente.
+4. **Atendimento:** clicar em *Atender* na consulta (ela passa para *realizada*).
+5. **Farmácia e exames:** cadastrar um medicamento e um exame, criar a **prescrição** e o **pedido de exame** a partir do atendimento e **registrar o resultado** do exame.
+6. **Internação** (quando o módulo estiver pronto): internar o paciente, escolher o quarto e registrar um atendimento de enfermagem.
+7. **Financeiro:** registrar o faturamento da consulta (o convênio do paciente é preenchido sozinho) e ver a receita por convênio.
+8. **Dashboard:** conferir as consultas de hoje, os resultados pendentes e a receita.
 
 ---
 
@@ -173,7 +193,8 @@ Legenda: ✅ pronto · 🔶 em andamento · ⬜ não iniciado
 | `Access denied for user 'root'` | A senha do `.env` não bate com a do MySQL. |
 | `uvicorn` não é reconhecido | O venv não está ativo. Rode `venv\Scripts\activate`. |
 | Erro de `bcrypt` ao registrar usuário | Incompatibilidade entre `passlib` e `bcrypt`. O `requirements.txt` já fixa uma versão compatível. |
-| `401 Not authenticated` | Faltou o **Authorize** no Swagger, ou o token expirou. |
+| `401 Not authenticated` | Faltou o **Authorize** no Swagger, ou o token expirou. No site, ele avisa "sessão expirada" e volta para o login. |
+| `Unknown column 'resultado'` | O banco foi criado antes do campo de resultado do exame. Rode no MySQL: `ALTER TABLE pedido_exame_item ADD COLUMN resultado TEXT NULL;` e `ALTER TABLE pedido_exame_item ADD COLUMN data_resultado DATE NULL;`. |
 | `Fatal error in launcher` ao usar `pip` | O venv foi criado em outra pasta. Apague a pasta `venv` e crie de novo. |
 
 ---
