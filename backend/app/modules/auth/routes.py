@@ -9,13 +9,18 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import criar_token, get_current_user, hash_senha, verificar_senha
+from app.core.permissoes import exigir_acesso
 from app.modules.auth import models, schemas
 
 router = APIRouter()
 
 
 @router.post("/registrar", response_model=schemas.UsuarioOut)
-def registrar_usuario(dados: schemas.UsuarioCreate, db: Session = Depends(get_db)):
+def registrar_usuario(
+    dados: schemas.UsuarioCreate,
+    db: Session = Depends(get_db),
+    _admin: dict = Depends(exigir_acesso("usuarios")),
+):
     """Cria um novo usuário (login) no sistema."""
     usuario_existente = db.query(models.Usuario).filter(models.Usuario.email == dados.email).first()
     if usuario_existente:

@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user
+from app.core.permissoes import exigir_acesso
 from app.modules.internacao import schemas
 from app.modules.internacao.service import (
     InternacaoService,
@@ -19,7 +20,7 @@ from app.modules.internacao.service import (
     InternacaoQuartoService,
 )
 
-router = APIRouter(tags=["Internação & Enfermagem"])
+router = APIRouter(tags=["Internação & Enfermagem"], dependencies=[Depends(exigir_acesso("internacao"))])
 
 
 # ==================================================

@@ -24,6 +24,113 @@ const ITENS_MENU = [
   { chave: "convenios", rotulo: "Convênios", icone: "bi-credit-card-2-front", href: "pacientes/index.html#convenios" },
 ];
 
+// ---------- Perfis de acesso ----------
+// IMPORTANTE: manter igual às regras do backend (app/core/permissoes.py).
+// "total" = pode tudo · "leitura" = só consulta · lista = consulta tudo e altera só os caminhos que começam com ela
+const MODULO_DO_ITEM = {
+  dashboard: null, pacientes: "pacientes", convenios: "pacientes", medicos: "agenda", agenda: "agenda",
+  resultados: "farmacia", internacao: "internacao", visao: "visao", financeiro: "financeiro",
+};
+const NIVEIS = {
+  pacientes:  { admin: "total", recepcao: ["/pacientes", "/contatos", "/prontuarios"], medico: ["/prontuarios"], enfermagem: "leitura" },
+  agenda:     { admin: "total", recepcao: ["/consultas"], medico: ["/consultas", "/atendimentos"], enfermagem: "leitura" },
+  farmacia:   { admin: "total", medico: ["/prescricoes", "/prescricao-medicamentos", "/pedidos-exames"], enfermagem: "leitura" },
+  internacao: { admin: "total", medico: ["/internacao/internacoes", "/internacao/internacao-quartos"], enfermagem: ["/internacao/atendimentos", "/internacao/internacao-quartos"] },
+  visao:      { admin: "total", medico: "total", enfermagem: "total" },
+  financeiro: { admin: "total", recepcao: "leitura" },
+};
+// páginas que têm menu escrito à mão (dashboard e financeiro): pedaço do endereço -> módulo
+const MODULO_DA_PAGINA = {
+  "pacientes/": "pacientes", "agenda/": "agenda", "farmacia-exames/": "farmacia",
+  "internacao/": "internacao", "visao-paciente/": "visao", "financeiro/": "financeiro",
+};
+// botões que alteram dados: [seletor, módulo, caminho da API, ações dentro da tabela (opcional)]
+const CONTROLES = [
+  ["#btn-novo-paciente", "pacientes", "/pacientes"],
+  ["#btn-novo-convenio", "pacientes", "/convenios"],
+  ["#tabela-pacientes", "pacientes", "/pacientes", ["editar", "excluir"]],
+  ["#tabela-convenios", "pacientes", "/convenios", ["editar", "excluir"]],
+  ["#btn-nova-consulta", "agenda", "/consultas"],
+  ["#btn-novo-medico", "agenda", "/medicos"],
+  ["#btn-nova-especialidade", "agenda", "/especialidades"],
+  ["#tabela-consultas", "agenda", "/consultas", ["remarcar", "cancelar", "editar", "excluir"]],
+  ["#tabela-consultas", "agenda", "/atendimentos", ["atender"]],
+  ["#tabela-medicos", "agenda", "/medicos", ["editar", "excluir"]],
+  ["#tabela-especialidades", "agenda", "/especialidades", ["editar", "excluir"]],
+  ["#btn-nova-prescricao", "farmacia", "/prescricoes"],
+  ["#btn-novo-pedido", "farmacia", "/pedidos-exames"],
+  ["#btn-novo-medicamento", "farmacia", "/medicamentos"],
+  ["#btn-novo-exame", "farmacia", "/exames"],
+  ["#tabela-prescricoes", "farmacia", "/prescricoes", ["editar", "excluir"]],
+  ["#tabela-pedidos", "farmacia", "/pedidos-exames", ["editar", "excluir"]],
+  ["#tabela-medicamentos", "farmacia", "/medicamentos", ["editar", "excluir"]],
+  ["#tabela-exames", "farmacia", "/exames", ["editar", "excluir"]],
+  ["#btn-nova-internacao", "internacao", "/internacao/internacoes"],
+  ["#btn-novo-atendimento", "internacao", "/internacao/atendimentos"],
+  ["#btn-novo-enfermeiro", "internacao", "/internacao/enfermeiros"],
+  ["#btn-novo-quarto", "internacao", "/internacao/quartos"],
+  ["#tabela-internacoes", "internacao", "/internacao/internacoes", ["editar", "excluir", "alta"]],
+  ["#tabela-internacoes", "internacao", "/internacao/internacao-quartos", ["quarto"]],
+  ["#tabela-atendimentos", "internacao", "/internacao/atendimentos", ["editar", "excluir"]],
+  ["#tabela-enfermeiros", "internacao", "/internacao/enfermeiros", ["editar", "excluir"]],
+  ["#tabela-quartos", "internacao", "/internacao/quartos", ["editar", "excluir"]],
+];
+
+function normalizarPerfil(perfil) {
+  const t = String(perfil || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  if (t.startsWith("enferm")) return "enfermagem";
+  if (t.startsWith("recep")) return "recepcao";
+  if (t.startsWith("medic")) return "medico";
+  if (t.startsWith("admin")) return "admin";
+  return t;
+}
+
+function perfilAtual() {
+  return normalizarPerfil(lerPerfilDoToken());
+}
+
+function regraDe(modulo) {
+  if (!modulo) return "total";
+  const regras = NIVEIS[modulo];
+  return (regras && regras[perfilAtual()]) || null;
+}
+
+function podeAcessar(modulo) {
+  return regraDe(modulo) !== null;
+}
+
+function podeEscrever(modulo, caminho) {
+  const regra = regraDe(modulo);
+  if (!regra || regra === "leitura") return false;
+  if (regra === "total") return true;
+  return regra.some((prefixo) => caminho.startsWith(prefixo));
+}
+
+// esconde, no menu escrito à mão, os itens que o perfil não pode usar
+function aplicarPerfilNoMenu() {
+  document.querySelectorAll(".sidebar nav a").forEach((a) => {
+    const href = a.getAttribute("href") || "";
+    const trecho = Object.keys(MODULO_DA_PAGINA).find((k) => href.includes(k));
+    if (trecho && !podeAcessar(MODULO_DA_PAGINA[trecho])) a.style.display = "none";
+  });
+}
+
+// esconde os botões de criar, editar e excluir que o perfil não pode usar
+// (a API também recusa com erro 403; isto só evita mostrar botão que não funciona)
+function aplicarPermissoesNaTela() {
+  const regras = [];
+  CONTROLES.forEach(([seletor, modulo, caminho, acoes]) => {
+    if (podeEscrever(modulo, caminho)) return;
+    if (acoes) acoes.forEach((acao) => regras.push(`${seletor} [data-acao="${acao}"]`));
+    else regras.push(seletor);
+  });
+  if (!regras.length) return;
+  const estilo = document.createElement("style");
+  estilo.textContent = regras.join(",\n") + " { display: none !important; }";
+  document.head.appendChild(estilo);
+}
+
+
 // ---------- Utilitários ----------
 function escapeHtml(valor) {
   const trocas = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
@@ -77,8 +184,14 @@ function montarLayout({ ativo, titulo, raiz = ".." }) {
     return false;
   }
 
+  if (!podeAcessar(MODULO_DO_ITEM[ativo])) {
+    location.href = `${raiz}/index.html`;
+    return false;
+  }
+  aplicarPermissoesNaTela();
+
   const perfil = lerPerfilDoToken();
-  const itens = ITENS_MENU.map(
+  const itens = ITENS_MENU.filter((i) => podeAcessar(MODULO_DO_ITEM[i.chave])).map(
     (i) =>
       `<a href="${raiz}/${i.href}" data-chave="${i.chave}" class="${i.chave === ativo ? "ativo" : ""}">` +
       `<i class="bi ${i.icone}"></i> ${i.rotulo}</a>`

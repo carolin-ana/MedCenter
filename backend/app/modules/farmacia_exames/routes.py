@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user
+from app.core.permissoes import exigir_acesso
 from app.modules.farmacia_exames import service
 
 from app.modules.farmacia_exames.schema import (
@@ -25,7 +26,7 @@ from app.modules.farmacia_exames.schema import (
 # Todas as rotas deste módulo exigem login (token JWT), definido uma vez só aqui.
 router = APIRouter(
     tags=["Farmácia & Exames"],
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(exigir_acesso("farmacia"))],
 )
 
 

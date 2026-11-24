@@ -59,6 +59,7 @@
   </div>
 
   <script src="../services/api.js"></script>
+  <script src="../services/layout.js"></script>
   <script>
     document.getElementById("data-hoje").textContent = new Date().toLocaleDateString("pt-BR", {
       weekday: "long", day: "2-digit", month: "long", year: "numeric",
@@ -67,6 +68,10 @@
     if (!estaLogado()) {
       location.href = "../index.html";
     }
+    if (estaLogado() && !podeAcessar("financeiro")) {
+      location.href = "../index.html";
+    }
+    aplicarPerfilNoMenu();
 
     const CORES_CONVENIO = ["#0f6e56", "#1b5fc2", "#7c3aed", "#b4660a", "#c2255c"];
 

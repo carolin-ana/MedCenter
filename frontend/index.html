@@ -185,6 +185,7 @@
       const perfil = lerPerfilDoToken();
       el("email-usuario").textContent = "perfil: " + perfil;
       el("iniciais-usuario").textContent = perfil.slice(0, 2).toUpperCase();
+      aplicarPerfilNoMenu();
 
       carregarDashboard();
     }
@@ -326,6 +327,11 @@
 
     async function carregarAlertas() {
       const corpo = el("alertas-corpo");
+      if (!podeAcessar("visao")) {
+        const cartao = corpo.closest(".card");
+        if (cartao) cartao.style.display = "none";
+        return;
+      }
       try {
         const a = await apiFetch("/visao/alertas");
         const cor = a.leitos.taxa >= 85 ? "#c22" : a.leitos.taxa >= 60 ? "#b4660a" : "#0f7a4d";

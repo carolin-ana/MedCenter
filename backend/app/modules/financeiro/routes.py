@@ -12,10 +12,11 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user
+from app.core.permissoes import exigir_acesso
 from app.modules.financeiro import schemas
 from app.modules.financeiro.service import FaturamentoService
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(exigir_acesso("financeiro"))])
 
 
 @router.post("/", response_model=schemas.FaturamentoOut)
