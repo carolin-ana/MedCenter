@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedCenter — Visão do paciente</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../style.css" />
+  <style>
+    .vp-topo { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+    .vp-topo select { padding: 0.5rem 0.7rem; border: 1px solid #d9dde2; border-radius: 8px; min-width: 300px; font-size: 0.92rem; background: #fff; }
+    .vp-cabecalho { display: flex; gap: 1.2rem; align-items: flex-start; flex-wrap: wrap; margin-bottom: 1rem; }
+    .vp-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--teal); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; flex-shrink: 0; }
+    .vp-dados { flex: 1; min-width: 260px; }
+    .vp-dados h2 { margin: 0 0 0.25rem; font-size: 1.3rem; }
+    .vp-meta { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; font-size: 0.85rem; color: #4b5563; }
+    .vp-meta span i { color: var(--teal); margin-right: 4px; }
+    .vp-obs { margin-top: 0.6rem; font-size: 0.85rem; background: #f4f6f8; border-radius: 8px; padding: 0.5rem 0.7rem; }
+    .vp-resumo { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+    .vp-resumo .card { padding: 0.8rem 1rem; }
+    .vp-resumo .n { font-size: 1.5rem; font-weight: 700; }
+    .vp-resumo .r { font-size: 0.78rem; color: var(--text-muted); }
+    .vp-alerta { background: #fff3e0; border: 1px solid #f3d4a5; color: #7a4a00; border-radius: 10px; padding: 0.6rem 0.9rem; font-size: 0.88rem; margin-bottom: 1rem; }
+    .vp-alerta i { margin-right: 6px; }
+    .vp-filtros { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+    .vp-filtros button { border: 1px solid #d9dde2; background: #fff; border-radius: 999px; padding: 0.25rem 0.8rem; font-size: 0.8rem; cursor: pointer; }
+    .vp-filtros button.ativo { background: var(--teal); color: #fff; border-color: var(--teal); }
+
+    .linha-tempo { position: relative; margin-left: 20px; padding-left: 28px; border-left: 3px solid #dfe5ea; }
+    .evento { position: relative; margin-bottom: 1rem; }
+    .evento .marcador { position: absolute; left: -48px; top: 0; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; border: 3px solid #f4f6f8; }
+    .evento .caixa { background: #fff; border-radius: 12px; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+    .evento .cima { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .evento .titulo { font-weight: 700; font-size: 0.95rem; }
+    .evento .data { font-size: 0.78rem; color: var(--text-muted); }
+    .evento ul { margin: 0.4rem 0 0; padding-left: 1.1rem; font-size: 0.85rem; color: #374151; }
+    .evento .valor { font-weight: 700; margin-top: 0.3rem; }
+    .t-consulta .marcador { background: #e7f1ff; color: #1b5fc2; }
+    .t-prescricao .marcador { background: #e6f7ef; color: #0f7a4d; }
+    .t-exame .marcador { background: #efedff; color: #5b43c9; }
+    .t-internacao .marcador { background: #fff3e0; color: #b4660a; }
+    .t-alta .marcador { background: #e6f7ef; color: #0f7a4d; }
+    .t-cobranca .marcador { background: #fdeaea; color: #b03030; }
+    @media (max-width: 700px) { .vp-topo select { min-width: 100%; } }
+  </style>
+</head>
+<body>
+
+  <div id="conteudo-pagina">
+
+    <div class="vp-topo">
+      <select id="sel-paciente"><option value="">Selecione um paciente...</option></select>
+      <span class="placeholder-aviso">Tudo o que aconteceu com o paciente, em uma tela só.</span>
+    </div>
+
+    <div id="area-visao">
+      <div class="card vazio">Escolha um paciente para ver o histórico completo.</div>
+    </div>
+
+  </div>
+
+  <script src="../services/api.js"></script>
+  <script src="../services/layout.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -67,6 +67,10 @@ app.include_router(farmacia_exames_router)
 
 from app.modules.agenda.routes import router as agenda_router
 app.include_router(agenda_router)
+
 from app.modules.internacao.routes import router as internacao_router
 app.include_router(internacao_router, prefix="/internacao", tags=["Internacao e Enfermagem"])
+
+from app.modules.visao_paciente.routes import router as visao_router
+app.include_router(visao_router, prefix="/visao", tags=["Visão do Paciente e Alertas"])
 

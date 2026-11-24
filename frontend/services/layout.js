@@ -18,9 +18,10 @@ const ITENS_MENU = [
   { chave: "medicos", rotulo: "Médicos", icone: "bi-person-badge", href: "agenda/index.html#medicos" },
   { chave: "agenda", rotulo: "Agendamentos", icone: "bi-calendar3", href: "agenda/index.html" },
   { chave: "resultados", rotulo: "Resultados", icone: "bi-file-earmark-text", href: "farmacia-exames/index.html" },
+  { chave: "internacao", rotulo: "Internação", icone: "bi-heart-pulse", href: "internacao/index.html" },
+  { chave: "visao", rotulo: "Visão do paciente", icone: "bi-clipboard2-pulse", href: "visao-paciente/index.html" },
   { chave: "financeiro", rotulo: "Financeiro", icone: "bi-bar-chart", href: "financeiro/index.html" },
   { chave: "convenios", rotulo: "Convênios", icone: "bi-credit-card-2-front", href: "pacientes/index.html#convenios" },
-  { chave: "internacao", rotulo: "Internação e Enfermagem", icone: "bi-hospital", href: "internacao/index.html" },
 ];
 
 // ---------- Utilitários ----------

@@ -40,6 +40,7 @@
         <a href="agenda/index.html" id="menu-agendamentos"><i class="bi bi-calendar3"></i> Agendamentos</a>
         <a href="farmacia-exames/index.html" id="menu-resultados"><i class="bi bi-file-earmark-text"></i> Resultados</a>
         <a href="internacao/index.html"><i class="bi bi-heart-pulse"></i> Internação</a>
+        <a href="visao-paciente/index.html"><i class="bi bi-clipboard2-pulse"></i> Visão do paciente</a>
         <a href="financeiro/index.html"><i class="bi bi-bar-chart"></i> Financeiro</a>
         <a href="pacientes/index.html#convenios"><i class="bi bi-credit-card-2-front"></i> Convênios</a>
       </nav>
@@ -121,6 +122,11 @@
               <div id="lista-agenda-hoje">
                 <p class="placeholder-aviso">Carregando...</p>
               </div>
+            </div>
+
+            <div class="card mt-3">
+              <div class="secao-titulo">Atenção agora</div>
+              <div id="alertas-corpo"><p class="placeholder-aviso">Carregando...</p></div>
             </div>
           </div>
 
@@ -313,6 +319,40 @@
       } else {
         el("stat-receita").textContent = "—";
         el("detalhe-receita").textContent = "não foi possível carregar";
+      }
+
+      carregarAlertas();
+    }
+
+    async function carregarAlertas() {
+      const corpo = el("alertas-corpo");
+      try {
+        const a = await apiFetch("/visao/alertas");
+        const cor = a.leitos.taxa >= 85 ? "#c22" : a.leitos.taxa >= 60 ? "#b4660a" : "#0f7a4d";
+        const estoque = a.estoque_baixo.length
+          ? a.estoque_baixo.map((m) => `<span class="pill pill-alerta" style="margin:0 4px 4px 0;">${m.nome}: ${m.quantidade} un.</span>`).join("")
+          : '<span class="placeholder-aviso">Nenhum medicamento com estoque baixo.</span>';
+        corpo.innerHTML = `
+          <div style="margin-bottom:0.9rem;">
+            <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:4px;">
+              <strong>Ocupação dos leitos</strong>
+              <span>${a.leitos.ocupados} de ${a.leitos.total} ocupados (${a.leitos.taxa}%) · ${a.leitos.livres} livres</span>
+            </div>
+            <div style="background:#e9edf0;border-radius:999px;height:10px;overflow:hidden;">
+              <div style="width:${a.leitos.taxa}%;background:${cor};height:100%;"></div>
+            </div>
+          </div>
+          <div style="margin-bottom:0.9rem;font-size:0.85rem;">
+            <strong>Estoque baixo</strong> <span class="placeholder-aviso">(até ${a.limite_estoque} unidades)</span>
+            <div style="margin-top:6px;">${estoque}</div>
+          </div>
+          <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:0.85rem;">
+            <span><i class="bi bi-hourglass-split"></i> <strong>${a.exames_sem_resultado}</strong> exame(s) sem resultado</span>
+            <span><i class="bi bi-cash-coin"></i> <strong>${a.faturamentos_pendentes}</strong> cobrança(s) pendente(s) · ${moeda(a.valor_pendente)}</span>
+            <span><i class="bi bi-hospital"></i> <strong>${a.internados}</strong> internado(s)</span>
+          </div>`;
+      } catch (e) {
+        corpo.innerHTML = '<p class="placeholder-aviso">Não foi possível carregar os alertas.</p>';
       }
     }
 
